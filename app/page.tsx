@@ -221,6 +221,7 @@ type StoredLayout = {
 type BoardState = {
   memos: MemoItem[];
   nodeOverrides: Record<string, NodeOverride>;
+  edges?: GraphEdge[];
   detailPosition: DetailPosition;
   inputPosition: DetailPosition;
   indexPosition: DetailPosition;
@@ -740,6 +741,24 @@ function projectAnchor(index: number, total: number) {
   return { x: start + index * spacing, y };
 }
 
+function sanitizeGraphEdges(edges: GraphEdge[], nodeIds: Set<string>) {
+  const seen = new Set<string>();
+  const sanitized: GraphEdge[] = [];
+
+  for (const edge of edges) {
+    if (!edge.source || !edge.target) continue;
+    if (edge.source === edge.target) continue;
+    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) continue;
+
+    const key = [edge.source, edge.target].sort().join("-");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    sanitized.push(edge);
+  }
+
+  return sanitized;
+}
+
 function buildThoughtGraph(memos: MemoItem[]) {
   const structures = memos.map((memo, index) => ({ memo, structure: extractStructure(memo, index) }));
   const projectCounts = new Map<string, number>();
@@ -886,7 +905,7 @@ function buildThoughtGraph(memos: MemoItem[]) {
     }
   }
 
-  return { nodes, edges: [...edges.values()], projects: projectNames };
+  return { nodes, edges: sanitizeGraphEdges([...edges.values()], new Set(nodes.map((node) => node.id))), projects: projectNames };
 }
 
 function getInitialNode(node: ThoughtNode, index: number, projectIndex: number, projectTotal: number): SimNode {
@@ -1193,6 +1212,35 @@ function mergeMediaSources(incoming: Record<string, NodeOverride>, current: Reco
   }
 
   return merged;
+}
+
+function sanitizeLoadedBoard(board: Partial<BoardState>, currentOverrides: Record<string, NodeOverride> = {}) {
+  const memos = Array.isArray(board.memos) ? board.memos.map((memo, index) => normalizeMemo(memo, index)) : [];
+  const graph = buildThoughtGraph(memos);
+  const nodeIds = new Set(graph.nodes.map((node) => node.id));
+  const mergedOverrides = hydrateNodeOverrides(mergeMediaSources(board.nodeOverrides ?? {}, currentOverrides));
+  const nodeOverrides: Record<string, NodeOverride> = {};
+
+  sanitizeGraphEdges(board.edges ?? graph.edges, nodeIds);
+
+  for (const [nodeId, override] of Object.entries(mergedOverrides)) {
+    if (!nodeIds.has(nodeId)) continue;
+    nodeOverrides[nodeId] = {
+      ...override,
+      images: (override.images ?? []).filter((image) => !image.linkedNodeId || nodeIds.has(image.linkedNodeId)),
+      links: (override.links ?? []).filter((link) => link.url && nodeIds.has(link.linkedNodeId)),
+    };
+  }
+
+  return cloneBoardState({
+    memos,
+    nodeOverrides,
+    detailPosition: board.detailPosition ?? { x: 28, y: 34 },
+    inputPosition: board.inputPosition ?? { x: 28, y: 26 },
+    indexPosition: board.indexPosition ?? { x: 28, y: 34 },
+    collapsedIndexNodes: board.collapsedIndexNodes ?? {},
+    detailExpanded: Boolean(board.detailExpanded),
+  });
 }
 
 function safeSetStorageItem(key: string, value: string) {
@@ -2855,8 +2903,8 @@ export default function Home() {
   }
 
   function restoreBoardState(state: BoardState) {
-    const nextState = cloneBoardState(state);
-    const restoredOverrides = hydrateNodeOverrides(mergeMediaSources(nextState.nodeOverrides ?? {}, nodeOverrides));
+    const nextState = sanitizeLoadedBoard(state, nodeOverrides);
+    const restoredOverrides = nextState.nodeOverrides;
     skipHistoryRef.current = true;
     setMemos(Array.isArray(nextState.memos) ? nextState.memos.map((memo, index) => normalizeMemo(memo, index)) : []);
     setNodeOverrides(restoredOverrides);
@@ -2899,8 +2947,9 @@ export default function Home() {
   }
 
   function currentSharedBoardData(): SharedBoardData {
+    const board = sanitizeLoadedBoard(currentBoardState(), nodeOverrides);
     return {
-      board: currentBoardState(),
+      board,
       snapshots: snapshots.slice(0, MAX_SNAPSHOTS),
     };
   }
@@ -3017,6 +3066,41 @@ export default function Home() {
       setShareNotice(message);
       alert(message);
     }
+  }
+
+  function repairCurrentConnections() {
+    const previous = lightweightBoardState(currentBoardState());
+    const repaired = lightweightBoardState(sanitizeLoadedBoard(previous, nodeOverrides));
+
+    setHistoryPast((current) => [...current, previous].slice(-MAX_HISTORY));
+    setHistoryFuture([]);
+    skipHistoryRef.current = true;
+    setMemos(repaired.memos);
+    setNodeOverrides(repaired.nodeOverrides);
+    setDetailPosition(repaired.detailPosition);
+    setInputPosition(repaired.inputPosition);
+    setIndexPosition(repaired.indexPosition);
+    setCollapsedIndexNodes(repaired.collapsedIndexNodes);
+    setDetailExpanded(Boolean(repaired.detailExpanded));
+    clearFocus();
+
+    safeSetStorageItem(STORAGE_KEY, JSON.stringify(repaired.memos));
+    safeSetStorageItem(
+      LAYOUT_STORAGE_KEY,
+      JSON.stringify({
+        nodes: repaired.nodeOverrides,
+        detail: repaired.detailPosition,
+        input: repaired.inputPosition,
+        index: repaired.indexPosition,
+      }),
+    );
+    setStorageUsage(readStorageUsage());
+    setShareNotice("연결선 정리 완료");
+
+    window.setTimeout(() => {
+      skipHistoryRef.current = false;
+      lastHistorySignatureRef.current = JSON.stringify(repaired);
+    }, 0);
   }
 
   function restoreSnapshot(snapshot: BoardSnapshot) {
@@ -4710,6 +4794,7 @@ export default function Home() {
         )}
         <button className="control-button" onClick={centerView} type="button">센터</button>
         <button className="control-button" onClick={resetLayout} type="button">초기화</button>
+        <button className="control-button" onClick={repairCurrentConnections} type="button">연결선 정리</button>
         <button className="control-button" onClick={() => saveBoardSnapshot(false)} type="button">저장 시점</button>
         <button className="control-button" onClick={() => setIsHistoryOpen((open) => !open)} type="button">히스토리</button>
         <button className="control-button" disabled={historyPast.length === 0} onClick={undoBoard} type="button">Undo</button>
