@@ -213,6 +213,7 @@ type LayerName = "input" | "index" | "detail";
 
 type StoredLayout = {
   nodes?: Record<string, NodeOverride>;
+  edges?: GraphEdge[];
   detail?: DetailPosition;
   input?: DetailPosition;
   index?: DetailPosition;
@@ -759,6 +760,24 @@ function sanitizeGraphEdges(edges: GraphEdge[], nodeIds: Set<string>) {
   return sanitized;
 }
 
+function rebuildEdgesFromHierarchy(nodes: Array<ThoughtNode | SimNode>) {
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const rebuilt = new Map<string, GraphEdge>();
+
+  for (const node of nodes) {
+    if (!node.parentId || !nodeIds.has(node.parentId)) continue;
+    const id = `${node.parentId}-${node.id}`;
+    rebuilt.set(id, {
+      id,
+      source: node.parentId,
+      target: node.id,
+      strength: node.level === "detail" ? 2.2 : 3.2,
+    });
+  }
+
+  return [...rebuilt.values()];
+}
+
 function buildThoughtGraph(memos: MemoItem[]) {
   const structures = memos.map((memo, index) => ({ memo, structure: extractStructure(memo, index) }));
   const projectCounts = new Map<string, number>();
@@ -1221,8 +1240,6 @@ function sanitizeLoadedBoard(board: Partial<BoardState>, currentOverrides: Recor
   const mergedOverrides = hydrateNodeOverrides(mergeMediaSources(board.nodeOverrides ?? {}, currentOverrides));
   const nodeOverrides: Record<string, NodeOverride> = {};
 
-  sanitizeGraphEdges(board.edges ?? graph.edges, nodeIds);
-
   for (const [nodeId, override] of Object.entries(mergedOverrides)) {
     if (!nodeIds.has(nodeId)) continue;
     nodeOverrides[nodeId] = {
@@ -1235,6 +1252,7 @@ function sanitizeLoadedBoard(board: Partial<BoardState>, currentOverrides: Recor
   return cloneBoardState({
     memos,
     nodeOverrides,
+    edges: sanitizeGraphEdges(board.edges ?? graph.edges, nodeIds),
     detailPosition: board.detailPosition ?? { x: 28, y: 34 },
     inputPosition: board.inputPosition ?? { x: 28, y: 26 },
     indexPosition: board.indexPosition ?? { x: 28, y: 34 },
@@ -1740,6 +1758,7 @@ export default function Home() {
   const [detailEditMode, setDetailEditMode] = useState<"summary" | "full" | null>(null);
   const [detailDraft, setDetailDraft] = useState("");
   const [nodeOverrides, setNodeOverrides] = useState<Record<string, NodeOverride>>({});
+  const [repairedEdges, setRepairedEdges] = useState<GraphEdge[] | null>(null);
   const [layoutLoaded, setLayoutLoaded] = useState(false);
   const [detailPosition, setDetailPosition] = useState<DetailPosition>({ x: 28, y: 34 });
   const [inputPosition, setInputPosition] = useState<DetailPosition>({ x: 28, y: 26 });
@@ -1795,6 +1814,7 @@ export default function Home() {
   } | null>(null);
 
   const { nodes, edges, projects } = useMemo(() => buildThoughtGraph(memos), [memos]);
+  const graphEdges = repairedEdges ?? edges;
   const modeLabel = currentPocketId ? "Inner Space" : editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
   const uiLayerEvents = {
     onPointerEnter: () => {
@@ -1913,13 +1933,13 @@ export default function Home() {
     if (!selectedNodeId) return new Set<string>();
     const ids = new Set<string>([selectedNodeId]);
 
-    for (const edge of edges) {
+    for (const edge of graphEdges) {
       if (edge.source === selectedNodeId) ids.add(edge.target);
       if (edge.target === selectedNodeId) ids.add(edge.source);
     }
 
     return ids;
-  }, [edges, selectedNodeId]);
+  }, [graphEdges, selectedNodeId]);
   const selectedAncestorTrail = useMemo(() => {
     const ids: string[] = [];
     let current = visibleNodes.find((node) => node.id === selectedNodeId);
@@ -2350,6 +2370,7 @@ export default function Home() {
       const parsed = JSON.parse(saved) as StoredLayout;
       saveImageAssetsFromOverrides(parsed.nodes ?? {});
       setNodeOverrides(hydrateNodeOverrides(parsed.nodes ?? {}));
+      if (Array.isArray(parsed.edges)) setRepairedEdges(parsed.edges);
       if (parsed.detail) setDetailPosition(parsed.detail);
       if (parsed.input) setInputPosition(parsed.input);
       if (parsed.index) setIndexPosition(parsed.index);
@@ -2379,6 +2400,7 @@ export default function Home() {
         LAYOUT_STORAGE_KEY,
         JSON.stringify({
           nodes: compactNodes,
+          edges: graphEdges,
           detail: detailPosition,
           input: inputPosition,
           index: indexPosition,
@@ -2390,7 +2412,7 @@ export default function Home() {
     return () => {
       if (layoutStorageTimerRef.current) window.clearTimeout(layoutStorageTimerRef.current);
     };
-  }, [detailPosition, indexPosition, inputPosition, layoutLoaded, nodeOverrides]);
+  }, [detailPosition, graphEdges, indexPosition, inputPosition, layoutLoaded, nodeOverrides]);
 
   useEffect(() => {
     if (!memosLoaded || !layoutLoaded || !archiveLoaded) return;
@@ -2562,7 +2584,7 @@ export default function Home() {
         }
       }
 
-      for (const edge of edges) {
+      for (const edge of graphEdges) {
         const source = byId.get(edge.source);
         const target = byId.get(edge.target);
         if (!source || !target) continue;
@@ -2631,7 +2653,7 @@ export default function Home() {
 
     animationId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationId);
-  }, [edges, projects]);
+  }, [graphEdges, projects]);
 
   function focusNode(node: SimNode) {
     setSelectedNodeId(node.id);
@@ -2894,6 +2916,7 @@ export default function Home() {
     return cloneBoardState({
       memos,
       nodeOverrides,
+      edges: graphEdges,
       detailPosition,
       inputPosition,
       indexPosition,
@@ -2908,6 +2931,7 @@ export default function Home() {
     skipHistoryRef.current = true;
     setMemos(Array.isArray(nextState.memos) ? nextState.memos.map((memo, index) => normalizeMemo(memo, index)) : []);
     setNodeOverrides(restoredOverrides);
+    setRepairedEdges(Array.isArray(nextState.edges) ? nextState.edges : null);
     setDetailPosition(nextState.detailPosition ?? { x: 28, y: 34 });
     setInputPosition(nextState.inputPosition ?? { x: 28, y: 26 });
     setIndexPosition(nextState.indexPosition ?? { x: 28, y: 34 });
@@ -3070,13 +3094,20 @@ export default function Home() {
 
   function repairCurrentConnections() {
     const previous = lightweightBoardState(currentBoardState());
-    const repaired = lightweightBoardState(sanitizeLoadedBoard(previous, nodeOverrides));
+    const nextEdges = rebuildEdgesFromHierarchy(visibleNodes);
+    const repaired = lightweightBoardState({
+      ...sanitizeLoadedBoard(previous, nodeOverrides),
+      edges: nextEdges,
+    });
+    console.log("edges before repair", graphEdges.length);
+    console.log("edges after repair", nextEdges.length);
 
     setHistoryPast((current) => [...current, previous].slice(-MAX_HISTORY));
     setHistoryFuture([]);
     skipHistoryRef.current = true;
     setMemos(repaired.memos);
     setNodeOverrides(repaired.nodeOverrides);
+    setRepairedEdges(nextEdges);
     setDetailPosition(repaired.detailPosition);
     setInputPosition(repaired.inputPosition);
     setIndexPosition(repaired.indexPosition);
@@ -3089,13 +3120,14 @@ export default function Home() {
       LAYOUT_STORAGE_KEY,
       JSON.stringify({
         nodes: repaired.nodeOverrides,
+        edges: nextEdges,
         detail: repaired.detailPosition,
         input: repaired.inputPosition,
         index: repaired.indexPosition,
       }),
     );
     setStorageUsage(readStorageUsage());
-    setShareNotice("연결선 정리 완료");
+    setShareNotice("연결선 강제 정리 완료");
 
     window.setTimeout(() => {
       skipHistoryRef.current = false;
@@ -4036,7 +4068,7 @@ export default function Home() {
             <stop offset="100%" stopColor="rgba(0, 0, 0, 0.04)" />
           </linearGradient>
         </defs>
-        {edges.map((edge) => {
+        {graphEdges.map((edge) => {
           const source = simNodes.find((node) => node.id === edge.source);
           const target = simNodes.find((node) => node.id === edge.target);
           if (!source || !target) return null;
