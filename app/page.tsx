@@ -4,11 +4,28 @@ import { createClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type NodeLevel = "project" | "category" | "detail";
+type InputMode = "memo" | "question";
+
+type ThoughtPocket = {
+  question?: string;
+  triggerKeyword?: string;
+  summary?: string;
+  conflict?: string;
+  logic?: string[];
+  emotion?: string;
+  conclusion?: string;
+  associatedKeywords?: string[];
+  reasoningFlow?: string[];
+  nextQuestions?: string[];
+  possibleConclusions?: string[];
+  actionSuggestions?: string[];
+};
 
 type AnalysisCategory = {
   title: string;
   summary: string;
   keywords: string[];
+  thoughtPocket?: ThoughtPocket;
 };
 
 type SuggestedNode = {
@@ -26,6 +43,7 @@ type AnalysisDetail = {
   title: string;
   summary: string;
   keywords: string[];
+  thoughtPocket?: ThoughtPocket;
 };
 
 type AnalysisResult = {
@@ -35,6 +53,7 @@ type AnalysisResult = {
   keywords: string[];
   suggestedNodes: SuggestedNode[];
   relatedTextSnippets: RelatedTextSnippet[];
+  thoughtPocket?: ThoughtPocket;
 };
 
 type ApiAnalysisResponse = {
@@ -43,10 +62,12 @@ type ApiAnalysisResponse = {
   categories: Array<{
     title: string;
     summary: string;
+    thoughtPocket?: ThoughtPocket;
     details: AnalysisDetail[];
   }>;
   keywords: string[];
   relatedSnippets: RelatedTextSnippet[];
+  thoughtPocket?: ThoughtPocket;
 };
 
 type MemoItem = {
@@ -76,6 +97,7 @@ type ThoughtNode = {
   parentId?: string;
   tokens: string[];
   color?: string;
+  thoughtPocket?: ThoughtPocket;
 };
 
 type GraphEdge = {
@@ -114,6 +136,15 @@ type Camera = {
 type Gaze = {
   x: number;
   y: number;
+};
+
+type SelectionRect = {
+  active: boolean;
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+  additive: boolean;
 };
 
 type NodeImage = {
@@ -246,6 +277,7 @@ const FLOATING_INTERACTION_SELECTOR =
   ".ui-layer, .interaction-safe-zone, .floating-action-layer, .input-layer, .keyword-index, .detail-layer, .control-layer, .interaction-guide, .history-panel, .link-modal-overlay, .image-modal-overlay";
 const colorLabels = ["graphite", "mist", "iris", "moss", "clay"];
 const knownProjects = ["HanVino", "Nick&Nicole", "Mind Orbit"];
+const strongConceptLabels = new Set(["ai", "codex", "hanvino", "nick&nicole", "mind orbit", "openai", "supabase", "next.js"]);
 const fallbackProjects = ["Mind Orbit", "Inner Work", "Open Thread"];
 const fallbackCategories = ["기획", "연결", "기록", "전환", "실험"];
 const projectLinePalette = [
@@ -301,6 +333,51 @@ const genericWords = new Set([
   "this",
 ]);
 
+const abstractKeywordFragments = [
+  "가능",
+  "결론",
+  "구조",
+  "감정",
+  "갈등",
+  "동력",
+  "기제",
+  "동인",
+  "동기",
+  "배경",
+  "병목",
+  "불안",
+  "사고",
+  "실행",
+  "심층",
+  "심리",
+  "전략",
+  "증상",
+  "욕망",
+  "의존",
+  "인정",
+  "자아",
+  "집착",
+  "충동",
+  "회피",
+];
+const abstractCategoryQuestions: Record<string, string> = {
+  배경: "이 생각은 어떤 상황에서 처음 강해졌는가?",
+  핵심: "이 사고가 계속 붙잡는 핵심 질문은 무엇인가?",
+  증상: "어떤 반복 패턴이 지금의 문제를 드러내는가?",
+  외적동기: "외부 인정은 왜 이 생각을 더 강하게 만드는가?",
+  심층동기: "이 생각 뒤에 숨어 있는 욕구는 무엇인가?",
+  실행: "이 생각은 어떤 구체적 행동으로 이어져야 하는가?",
+  결론: "현재 내가 도달한 판단은 무엇이며 무엇을 남기는가?",
+  동기: "나는 무엇에 의해 움직이고 무엇을 피하려 하는가?",
+  구조: "이 생각을 실행으로 바꾸려면 어떤 연결 구조가 필요한가?",
+  전략: "이 판단은 어떤 실행 방향으로 이어져야 하는가?",
+  심리적원인: "결과보다 과정 피로가 더 크게 느껴지는 이유는 무엇인가?",
+  패턴요약: "생각은 빠른데 실행은 항상 늦어지는 패턴이 반복된다",
+  실행장애: "작업량이 커질수록 시작 자체를 회피하게 된다",
+  행동마찰: "실행으로 넘어가는 순간마다 작은 마찰이 크게 느껴진다",
+};
+const incompleteNodeEndings = ["하고", "하며", "인지", "지만", "거나", "때문일까", "때문에", "위해", "라서", "에서", "으로", "로", "을", "를", "은", "는", "이", "가"];
+
 function hashString(value: string) {
   let hash = 0;
 
@@ -328,6 +405,111 @@ function cleanPhrase(text: string) {
     .trim();
 }
 
+function isAbstractKeyword(label: string) {
+  const normalized = label.trim();
+  if (!normalized) return false;
+  const key = normalized.toLowerCase();
+  if (strongConceptLabels.has(key)) return false;
+  if (knownProjects.some((project) => project.toLowerCase() === key)) return false;
+  if (/[A-Z&.]/.test(normalized)) return false;
+  if (/\s/.test(normalized)) return false;
+  if (normalized.length > 8) return false;
+  if (!/[가-힣]/.test(normalized)) return false;
+
+  return abstractKeywordFragments.some((fragment) => normalized.includes(fragment));
+}
+
+function isIncompleteNodeLabel(label: string) {
+  const normalized = label.trim().replace(/[.?!。！？]+$/u, "");
+  if (!normalized) return true;
+  const key = normalized.toLowerCase();
+  if (strongConceptLabels.has(key)) return true;
+  if (abstractCategoryQuestions[normalized]) return true;
+  if (normalized.length < 18) return true;
+  return incompleteNodeEndings.some((ending) => normalized.endsWith(ending));
+}
+
+function expandNodeLabel(label: string, context = "") {
+  const normalized = label.trim();
+  if (abstractCategoryQuestions[normalized]) return abstractCategoryQuestions[normalized];
+  if (!isAbstractKeyword(normalized)) return normalized;
+  const contextKey = context.toLowerCase();
+
+  if (normalized.includes("외적") || normalized.includes("인정")) {
+    return "나는 왜 외부 인정에 강하게 반응하는가?";
+  }
+  if (normalized.includes("심리") || normalized.includes("기제")) {
+    if (contextKey.includes("ai") || context.includes("자동화")) {
+      return "AI 자동화에 집착하게 되는 내면 심리는 무엇인가?";
+    }
+    return "이 행동을 반복하게 만드는 내면 심리는 무엇인가?";
+  }
+  if (normalized.includes("동기")) {
+    return "나는 무엇에 의해 움직이고 있는가?";
+  }
+  if (normalized.includes("불안")) {
+    return "이 불안은 무엇을 보호하려는 신호인가?";
+  }
+  if (normalized.includes("회피")) {
+    return "나는 무엇을 마주하지 않기 위해 우회하고 있는가?";
+  }
+  if (normalized.includes("집착")) {
+    return "나는 왜 이 생각을 쉽게 놓지 못하는가?";
+  }
+  if (normalized.includes("갈등")) {
+    return "내 안에서 충돌하는 욕구는 무엇인가?";
+  }
+  if (normalized.includes("감정")) {
+    return "이 감정은 어떤 판단이나 욕구에서 생겨나는가?";
+  }
+
+  return `${normalized}은 지금 내 사고에서 어떤 질문으로 이어지는가?`;
+}
+
+function compactThoughtState(value: string) {
+  return value
+    .replace(/^나는\s*/u, "")
+    .replace(/하게 되었을까\?/u, "하는가?")
+    .replace(/하게 되었는가\?/u, "하는가?")
+    .replace(/되었을까\?/u, "되었는가?")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cognitiveFallbackLabel(fallback: string, context = "") {
+  const expanded = expandNodeLabel(fallback, context);
+  if (expanded !== fallback && expanded.length >= 18) return expanded;
+  const contextKey = context.toLowerCase();
+
+  if (contextKey.includes("ai") || context.includes("자동화")) {
+    return "생각은 빠른데 실행은 항상 늦어지는 상태가 반복된다";
+  }
+  if (fallback.includes("실행")) return "작업량이 커질수록 시작 자체를 회피하게 된다";
+  if (fallback.includes("심리") || fallback.includes("원인")) return "결과보다 과정 피로가 더 크게 느껴진다";
+  if (fallback.includes("패턴")) return "생각은 빠른데 실행은 항상 늦어지는 패턴이 반복된다";
+
+  return "이 생각은 아직 말로 정리되지 않은 인지 상태로 남아 있다";
+}
+
+function thoughtStateLabelFromPocket(pocket: ThoughtPocket | undefined, fallback: string, context = "") {
+  const candidates = [
+    pocket?.question,
+    pocket?.conclusion,
+    pocket?.summary,
+    ...(pocket?.reasoningFlow ?? []),
+    expandNodeLabel(fallback, context),
+  ];
+  const selected = candidates.find((candidate) => {
+    if (!candidate) return false;
+    const compact = compactThoughtState(candidate);
+    return compact.length >= 18 && !isIncompleteNodeLabel(compact);
+  });
+  const label = compactThoughtState(selected ?? expandNodeLabel(fallback, context));
+  if (!isIncompleteNodeLabel(label)) return label.length > 42 ? `${label.slice(0, 40).trim()}...` : label;
+  if (strongConceptLabels.has(fallback.trim().toLowerCase())) return `${fallback.trim()}은 어떤 사고 상태를 가리키는가?`;
+  return cognitiveFallbackLabel(fallback, context);
+}
+
 function uniqueLabels(values: string[]) {
   const seen = new Set<string>();
 
@@ -337,6 +519,39 @@ function uniqueLabels(values: string[]) {
     seen.add(key);
     return true;
   });
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && Boolean(item.trim())) : [];
+}
+
+function normalizeThoughtPocket(value: unknown): ThoughtPocket | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const pocket = value as Partial<ThoughtPocket>;
+  const normalized: ThoughtPocket = {};
+
+  if (typeof pocket.question === "string" && pocket.question.trim()) normalized.question = pocket.question;
+  if (typeof pocket.triggerKeyword === "string" && pocket.triggerKeyword.trim()) normalized.triggerKeyword = pocket.triggerKeyword;
+  if (typeof pocket.summary === "string" && pocket.summary.trim()) normalized.summary = pocket.summary;
+  if (typeof pocket.conflict === "string" && pocket.conflict.trim()) normalized.conflict = pocket.conflict;
+  if (typeof pocket.emotion === "string" && pocket.emotion.trim()) normalized.emotion = pocket.emotion;
+  if (typeof pocket.conclusion === "string" && pocket.conclusion.trim()) normalized.conclusion = pocket.conclusion;
+
+  const logic = stringArray(pocket.logic);
+  const associatedKeywords = stringArray(pocket.associatedKeywords);
+  const reasoningFlow = stringArray(pocket.reasoningFlow);
+  const nextQuestions = stringArray(pocket.nextQuestions);
+  const possibleConclusions = stringArray(pocket.possibleConclusions);
+  const actionSuggestions = stringArray(pocket.actionSuggestions);
+
+  if (logic.length > 0) normalized.logic = logic;
+  if (associatedKeywords.length > 0) normalized.associatedKeywords = associatedKeywords;
+  if (reasoningFlow.length > 0) normalized.reasoningFlow = reasoningFlow;
+  if (nextQuestions.length > 0) normalized.nextQuestions = nextQuestions;
+  if (possibleConclusions.length > 0) normalized.possibleConclusions = possibleConclusions;
+  if (actionSuggestions.length > 0) normalized.actionSuggestions = actionSuggestions;
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
 function normalizeAnalysis(value: unknown): AnalysisResult | undefined {
@@ -354,23 +569,19 @@ function normalizeAnalysis(value: unknown): AnalysisResult | undefined {
       ? analysis.categories.map((category) => ({
           title: typeof category.title === "string" ? category.title : "Untitled",
           summary: typeof category.summary === "string" ? category.summary : "",
-          keywords: Array.isArray(category.keywords)
-            ? category.keywords.filter((keyword): keyword is string => typeof keyword === "string")
-            : [],
+          keywords: stringArray(category.keywords),
+          thoughtPocket: normalizeThoughtPocket(category.thoughtPocket),
           details: Array.isArray(category.details)
             ? category.details.map((detail) => ({
                 title: typeof detail.title === "string" ? detail.title : "Untitled",
                 summary: typeof detail.summary === "string" ? detail.summary : "",
-                keywords: Array.isArray(detail.keywords)
-                  ? detail.keywords.filter((keyword): keyword is string => typeof keyword === "string")
-                  : [],
+                keywords: stringArray(detail.keywords),
+                thoughtPocket: normalizeThoughtPocket(detail.thoughtPocket),
               }))
             : [],
         }))
       : [],
-    keywords: Array.isArray(analysis.keywords)
-      ? analysis.keywords.filter((keyword): keyword is string => typeof keyword === "string")
-      : [],
+    keywords: stringArray(analysis.keywords),
     suggestedNodes: Array.isArray(analysis.suggestedNodes)
       ? analysis.suggestedNodes.map((node) => ({
           label: typeof node.label === "string" ? node.label : "새 생각",
@@ -384,6 +595,7 @@ function normalizeAnalysis(value: unknown): AnalysisResult | undefined {
           text: typeof snippet.text === "string" ? snippet.text : "",
         }))
       : [],
+    thoughtPocket: normalizeThoughtPocket(analysis.thoughtPocket),
   };
 }
 
@@ -541,13 +753,15 @@ function buildThoughtGraph(memos: MemoItem[]) {
     projectCounts.set(structure.project, count + 1);
     const project = count === 0 ? structure.project : `${structure.project} ${count + 1}`;
 
+    const nodeLabel = thoughtStateLabelFromPocket(memo.analysis?.thoughtPocket, project, memo.text);
     const node: ThoughtNode = {
       id: `${memo.id}-project-${hashString(project)}-${projectIndex}`,
       memo,
       project,
-      label: project,
+      label: nodeLabel,
       level: "project",
-      tokens: tokenize(project),
+      tokens: tokenize([project, nodeLabel, ...(memo.analysis?.thoughtPocket?.reasoningFlow ?? [])].join(" ")),
+      thoughtPocket: memo.analysis?.thoughtPocket,
     };
 
     projectNames.push(project);
@@ -559,16 +773,20 @@ function buildThoughtGraph(memos: MemoItem[]) {
     const projectNode = projectNodeByMemo.get(memo.id);
     if (!projectNode) continue;
 
+    let previousCategoryId = projectNode.id;
     structure.categories.forEach((category, categoryIndex) => {
       const categoryId = `${memo.id}-category-${categoryIndex}-${hashString(`${projectNode.project}-${category.label}`)}`;
+      const analysisCategory = memo.analysis?.categories.find((item) => item.title === category.label);
+      const categoryLabel = thoughtStateLabelFromPocket(analysisCategory?.thoughtPocket, category.label, memo.text);
       const categoryNode: ThoughtNode = {
         id: categoryId,
         memo,
         project: projectNode.project,
-        label: category.label,
+        label: categoryLabel,
         level: "category",
         parentId: projectNode.id,
-        tokens: tokenize(category.label),
+        tokens: tokenize([category.label, categoryLabel, ...(analysisCategory?.thoughtPocket?.reasoningFlow ?? []), ...(analysisCategory?.thoughtPocket?.associatedKeywords ?? [])].join(" ")),
+        thoughtPocket: analysisCategory?.thoughtPocket,
       };
 
       nodes.push(categoryNode);
@@ -578,17 +796,30 @@ function buildThoughtGraph(memos: MemoItem[]) {
         target: categoryId,
         strength: 3.2,
       });
+      if (previousCategoryId !== projectNode.id) {
+        edges.set(`${previousCategoryId}-${categoryId}-flow`, {
+          id: `${previousCategoryId}-${categoryId}-flow`,
+          source: previousCategoryId,
+          target: categoryId,
+          strength: 2.8,
+        });
+      }
+      previousCategoryId = categoryId;
 
+      let previousFlowId = categoryId;
       category.details.forEach((detail, detailIndex) => {
         const detailId = `${memo.id}-detail-${categoryIndex}-${detailIndex}-${hashString(detail)}`;
+        const analysisDetail = analysisCategory?.details?.find((item) => item.title === detail);
+        const detailLabel = thoughtStateLabelFromPocket(analysisDetail?.thoughtPocket, detail, memo.text);
         const detailNode: ThoughtNode = {
           id: detailId,
           memo,
           project: projectNode.project,
-          label: detail,
+          label: detailLabel,
           level: "detail",
           parentId: categoryId,
-          tokens: tokenize(detail),
+          tokens: tokenize([detail, detailLabel, ...(analysisDetail?.thoughtPocket?.reasoningFlow ?? []), ...(analysisDetail?.thoughtPocket?.associatedKeywords ?? [])].join(" ")),
+          thoughtPocket: analysisDetail?.thoughtPocket,
         };
 
         nodes.push(detailNode);
@@ -598,6 +829,15 @@ function buildThoughtGraph(memos: MemoItem[]) {
           target: detailId,
           strength: 2.2,
         });
+        if (previousFlowId !== categoryId) {
+          edges.set(`${previousFlowId}-${detailId}-flow`, {
+            id: `${previousFlowId}-${detailId}-flow`,
+            source: previousFlowId,
+            target: detailId,
+            strength: 2.4,
+          });
+        }
+        previousFlowId = detailId;
       });
     });
   }
@@ -1071,7 +1311,167 @@ function relatedMemoText(text: string, label: string, level: NodeLevel) {
   return trimDetailText(summarizeMemoText(text, level), maxLength);
 }
 
-function analyzeMemoLocally(text: string): AnalysisResult {
+function createThoughtPocket(text: string, label: string, level: NodeLevel, mode: InputMode): ThoughtPocket {
+  const relatedText = relatedMemoText(text, label, level);
+  const expandedQuestion = expandNodeLabel(label, text);
+  const tokens = uniqueLabels([label, ...tokenize(`${label} ${relatedText}`)]).slice(0, 8);
+  const question =
+    expandedQuestion !== label
+        ? expandedQuestion
+        : !isIncompleteNodeLabel(label)
+          ? compactThoughtState(label)
+        : `${label}에 대해 무엇을 더 확인해야 할까?`;
+  const units = splitTextUnits(relatedText || text).slice(0, 3);
+  const conflict = isAbstractKeyword(label)
+    ? `${label}이 단순 개념으로 남아 있어서, 실제 욕구와 선택의 긴장을 아직 드러내지 못하고 있습니다.`
+    : `${label}을 중심으로 무엇을 선택하고 무엇을 보류할지 정리해야 합니다.`;
+  const logic = units.length > 0 ? units : [`${label}이 현재 사고의 출발점입니다.`];
+  const emotion = isAbstractKeyword(label)
+    ? "반응의 강도, 집착, 회피, 인정 욕구 같은 감정 신호를 함께 살펴봐야 합니다."
+    : "이 노드와 연결된 감정 강도는 추가 메모를 통해 더 선명해질 수 있습니다.";
+  const conclusion = `${label}은 키워드라기보다 다음 판단을 열기 위한 사고 상태로 다뤄야 합니다.`;
+
+  return {
+    question,
+    triggerKeyword: label,
+    summary: summarizeMemoText(relatedText || text, level),
+    conflict,
+    logic,
+    emotion,
+    conclusion,
+    associatedKeywords: tokens,
+    reasoningFlow: [
+      `질문: ${question}`,
+      `갈등: ${conflict}`,
+      ...logic.map((item) => `논리: ${item}`),
+      `감정: ${emotion}`,
+      `결론: ${conclusion}`,
+    ].slice(0, 7),
+    nextQuestions: [
+      `${label}이 다른 생각과 어떻게 연결될까?`,
+      `${label}에서 지금 결정해야 할 것은 무엇일까?`,
+    ],
+    possibleConclusions: [conclusion],
+    actionSuggestions: ["관련 메모를 추가해 연결을 확인하기", "다음 질문을 하나 선택해 새 Thought Pocket 만들기"],
+  };
+}
+
+function createFlowAnalysis(text: string, mode: InputMode = "memo"): AnalysisResult {
+  const lower = text.toLowerCase();
+  const mentionsAi = lower.includes("ai") || text.includes("자동화");
+  const coreQuestion = mode === "question" || /[?？]/u.test(text)
+    ? "왜 AI 자동화에 집착하는가?"
+    : "이 생각의 핵심 질문은 무엇인가?";
+  const projectTitle = mentionsAi ? "왜 AI 자동화에 집착하는가?" : coreQuestion;
+  const projectSummary = mentionsAi
+    ? "아이디어 생성 속도와 실행 속도의 차이가 자동화 욕구를 만들고 있습니다."
+    : summarizeMemoText(text, "project");
+  const baseKeywords = uniqueLabels([...tokenize(text), "질문", "갈등", "실행", "결론"]).slice(0, 10);
+  const states = [
+    {
+      title: mentionsAi ? "AI 자동화에 대한 집착은 어디서 시작되는가?" : "이 질문은 어떤 상황에서 시작되었는가?",
+      summary: "사고의 출발 상황을 잡아야 같은 질문이 반복되는 이유를 볼 수 있습니다.",
+      details: [
+        mentionsAi ? "생각과 실행의 간극이 자동화를 부른다" : "생각과 실행 사이의 간극이 문제를 드러낸다",
+        "반복되는 정리 과정에서 에너지가 소모된다",
+      ],
+    },
+    {
+      title: "반복 노동에서 벗어나고 싶은 욕구가 충돌한다",
+      summary: "시간 절약 욕구와 실행 통제 욕구가 함께 움직입니다.",
+      details: [
+        "단순한 시간 절약인지 내면의 회피인지 구분해야 한다",
+        "AI에게 어디까지 맡겨도 되는가?",
+      ],
+    },
+    {
+      title: "결과보다 과정 피로가 더 크게 느껴진다",
+      summary: "실행 과정의 마찰이 결과에 대한 기대보다 더 크게 체감됩니다.",
+      details: [
+        "정리와 지시서 작성 단계에서 사고 에너지가 빠져나간다",
+        "작업량이 커질수록 시작 자체를 회피하게 된다",
+      ],
+    },
+    {
+      title: "생각은 빠른데 실행은 항상 늦어지는 패턴이 반복된다",
+      summary: "인지 속도와 실행 속도의 차이가 자동화 욕구를 강화합니다.",
+      details: [
+        "떠오른 생각이 작업 단위로 바뀌지 못한다",
+        "실행으로 넘어가는 순간마다 작은 마찰이 크게 느껴진다",
+      ],
+    },
+    {
+      title: "생각을 실행으로 바꾸는 구조가 필요하다",
+      summary: "결론은 자동화 자체가 아니라 사고가 작업으로 이어지는 흐름을 만드는 것입니다.",
+      details: [
+        "작업 지시서로 변환되는 중간 구조가 필요하다",
+        "작은 실행 단위로 배포까지 연결해야 한다",
+      ],
+    },
+    {
+      title: "AI에게 어디까지 맡겨도 되는가?",
+      summary: "다음 질문은 자동화 범위를 정하고 사고 주도권을 유지하는 문제로 이어집니다.",
+      details: [
+        "자동화가 사고를 대체하지 않고 실행을 보조해야 한다",
+        "다음 실험은 작은 작업 흐름 하나를 자동화하는 것이다",
+      ],
+    },
+  ];
+  const projectPocket: ThoughtPocket = {
+    question: coreQuestion,
+    triggerKeyword: mentionsAi ? "AI 자동화" : "핵심 질문",
+    summary: projectSummary,
+    conflict: "생각은 빠르게 생기지만 정리, 지시, 구현, 배포로 이어지는 과정에서 에너지가 줄어듭니다.",
+    logic: [
+      "아이디어 생성 속도는 빠르지만 실행 속도는 따라오지 못합니다.",
+      "반복 노동은 사고의 흐름을 끊고 에너지를 소모시킵니다.",
+      "따라서 원하는 것은 자동화 자체가 아니라 생각이 실행으로 이어지는 구조입니다.",
+    ],
+    emotion: "반복 과정에서 피로와 답답함이 생기고, 그 감정이 자동화 욕구를 강화합니다.",
+    conclusion: "생각과 실행의 간극이 자동화를 부른다",
+    associatedKeywords: baseKeywords,
+    reasoningFlow: [
+      `질문: ${coreQuestion}`,
+      "갈등: 시간을 아끼고 싶은 마음과 반복 노동에서 벗어나고 싶은 욕구가 겹쳐 있습니다.",
+      "판단: 문제는 자동화 도구 부족이 아니라 생각을 실행 단위로 바꾸는 구조의 부재입니다.",
+      "결론: 생각과 실행의 간극이 자동화를 부른다",
+    ],
+    nextQuestions: ["AI에게 어디까지 맡겨도 되는가?", "생각을 작업 지시서로 바꾸는 최소 구조는 무엇인가?"],
+    possibleConclusions: ["생각과 실행의 간극이 자동화를 부른다", "반복 노동에서 벗어나려는 욕구가 자동화 집착을 강화한다"],
+    actionSuggestions: ["반복되는 정리 작업을 단계별로 적어보기", "메모를 작업 지시서로 바꾸는 템플릿 만들기"],
+  };
+
+  return {
+    projectTitle,
+    projectSummary,
+    categories: states.map((state) => ({
+      title: state.title,
+      summary: state.summary,
+      keywords: baseKeywords,
+      thoughtPocket: createThoughtPocket(text, state.title, "category", mode),
+      details: state.details.map((detail) => ({
+        title: detail,
+        summary: detail,
+        keywords: baseKeywords,
+        thoughtPocket: createThoughtPocket(text, detail, "detail", mode),
+      })),
+    })),
+    keywords: baseKeywords,
+    suggestedNodes: [
+      { label: projectTitle, level: "project" },
+      ...states.flatMap((state) => [
+        { label: state.title, level: "category" as const, parentLabel: projectTitle },
+        ...state.details.map((detail) => ({ label: detail, level: "detail" as const, parentLabel: state.title })),
+      ]),
+    ],
+    relatedTextSnippets: states.map((state) => ({ label: state.title, text: state.summary })),
+    thoughtPocket: projectPocket,
+  };
+}
+
+function analyzeMemoLocally(text: string, mode: InputMode = "memo"): AnalysisResult {
+  if (mode === "question" || text.length > 120 || /[?？]/u.test(text)) return createFlowAnalysis(text, mode);
+
   const draftMemo = { id: "analysis-draft", text, keywords: [], createdAt: new Date().toISOString() };
   const structure = extractStructure(draftMemo, 0);
   const units = splitTextUnits(text);
@@ -1087,6 +1487,13 @@ function analyzeMemoLocally(text: string): AnalysisResult {
       title: category.label,
       summary: relatedMemoText(text, category.label, "category"),
       keywords: category.details,
+      thoughtPocket: createThoughtPocket(text, category.label, "category", mode),
+      details: category.details.map((detail) => ({
+        title: detail,
+        summary: relatedMemoText(text, detail, "detail"),
+        keywords: uniqueLabels([detail, ...tokenize(relatedMemoText(text, detail, "detail"))]).slice(0, 6),
+        thoughtPocket: createThoughtPocket(text, detail, "detail", mode),
+      })),
     })),
     keywords,
     suggestedNodes: [
@@ -1100,30 +1507,52 @@ function analyzeMemoLocally(text: string): AnalysisResult {
       label: keyword,
       text: relatedMemoText(text, keyword, "detail") || units[0] || "",
     })),
+    thoughtPocket: createThoughtPocket(text, structure.project, "project", mode),
   };
 }
 
 function mapApiAnalysisToPreview(analysis: ApiAnalysisResponse): AnalysisResult {
-  return {
-    projectTitle: analysis.projectTitle,
-    projectSummary: analysis.projectSummary,
-    categories: analysis.categories.map((category) => ({
-      title: category.title,
+  const projectPocket = normalizeThoughtPocket(analysis.thoughtPocket);
+  const projectTitle = thoughtStateLabelFromPocket(projectPocket, analysis.projectTitle, analysis.projectSummary);
+  const categories = analysis.categories.map((category) => {
+    const categoryPocket = normalizeThoughtPocket(category.thoughtPocket);
+    const categoryTitle = thoughtStateLabelFromPocket(categoryPocket, category.title, analysis.projectSummary);
+    const details = category.details.map((detail) => {
+      const detailPocket = normalizeThoughtPocket(detail.thoughtPocket);
+      const detailTitle = thoughtStateLabelFromPocket(detailPocket, detail.title, detail.summary);
+
+      return {
+        ...detail,
+        title: detailTitle,
+        thoughtPocket: detailPocket,
+      };
+    });
+
+    return {
+      title: categoryTitle,
       summary: category.summary,
       keywords: [
-        ...category.details.flatMap((detail) => [detail.title, ...detail.keywords]),
+        ...details.flatMap((detail) => [detail.title, ...detail.keywords]),
       ],
-      details: category.details,
-    })),
+      details,
+      thoughtPocket: categoryPocket,
+    };
+  });
+
+  return {
+    projectTitle,
+    projectSummary: analysis.projectSummary,
+    categories,
     keywords: analysis.keywords,
     suggestedNodes: [
-      { label: analysis.projectTitle, level: "project" },
-      ...analysis.categories.flatMap((category) => [
-        { label: category.title, level: "category" as const, parentLabel: analysis.projectTitle },
+      { label: projectTitle, level: "project" },
+      ...categories.flatMap((category) => [
+        { label: category.title, level: "category" as const, parentLabel: projectTitle },
         ...category.details.map((detail) => ({ label: detail.title, level: "detail" as const, parentLabel: category.title })),
       ]),
     ],
     relatedTextSnippets: analysis.relatedSnippets,
+    thoughtPocket: projectPocket,
   };
 }
 
@@ -1131,8 +1560,8 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function analysisCacheKey(text: string) {
-  return `analysis-${hashString(text.trim())}-${text.trim().length}`;
+function analysisCacheKey(text: string, mode: InputMode) {
+  return `analysis-${mode}-${hashString(text.trim())}-${text.trim().length}`;
 }
 
 function readAnalysisCache(): Record<string, AnalysisResult> {
@@ -1208,7 +1637,7 @@ function resizeImageFile(file: File): Promise<NodeImage> {
 }
 
 function isInteractiveTarget(target: EventTarget | null) {
-  return target instanceof HTMLElement && Boolean(target.closest("textarea, input, button"));
+  return target instanceof HTMLElement && Boolean(target.closest("textarea, input, button, [contenteditable='true']"));
 }
 
 function autoPanAxis(value: number) {
@@ -1223,6 +1652,7 @@ export default function Home() {
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
   );
   const [text, setText] = useState("");
+  const [inputMode, setInputMode] = useState<InputMode>("memo");
   const [analysisPreview, setAnalysisPreview] = useState<AnalysisResult | null>(null);
   const [analysisError, setAnalysisError] = useState("");
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
@@ -1240,9 +1670,11 @@ export default function Home() {
   const [memosLoaded, setMemosLoaded] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null);
+  const [currentPocketId, setCurrentPocketId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [hoveredImageId, setHoveredImageId] = useState<string | null>(null);
   const [hoveredLinkId, setHoveredLinkId] = useState<string | null>(null);
@@ -1277,11 +1709,12 @@ export default function Home() {
   const [archiveLoaded, setArchiveLoaded] = useState(false);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
+  const [selectionRect, setSelectionRect] = useState<SelectionRect | null>(null);
   const spaceRef = useRef<HTMLDivElement | null>(null);
   const simRef = useRef<SimNode[]>([]);
   const cameraRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
   const targetCameraRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
-  const dragNodeRef = useRef<{ id: string; moved: boolean; structure: boolean; lastX: number; lastY: number } | null>(null);
+  const dragNodeRef = useRef<{ id: string; moved: boolean; structure: boolean; lastX: number; lastY: number; ids?: Set<string> } | null>(null);
   const dragImageRef = useRef<{ id: string; linkedNodeId: string; moved: boolean; lastX: number; lastY: number } | null>(null);
   const dragLinkRef = useRef<{ id: string; linkedNodeId: string; moved: boolean; lastX: number; lastY: number } | null>(null);
   const groupImageDragRef = useRef<{ ids: Set<string>; dx: number; dy: number } | null>(null);
@@ -1302,6 +1735,8 @@ export default function Home() {
   const gazePanEnabledRef = useRef(false);
   const pointerOverUiRef = useRef(false);
   const lastDragMovedRef = useRef(false);
+  const selectionRectRef = useRef<SelectionRect | null>(null);
+  const selectionBaseIdsRef = useRef<Set<string>>(new Set());
   const panRef = useRef<{ active: boolean; moved: boolean; x: number; y: number }>({ active: false, moved: false, x: 0, y: 0 });
   const layerDragRef = useRef<{
     layer: LayerName;
@@ -1312,7 +1747,7 @@ export default function Home() {
   } | null>(null);
 
   const { nodes, edges, projects } = useMemo(() => buildThoughtGraph(memos), [memos]);
-  const modeLabel = editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
+  const modeLabel = currentPocketId ? "Inner Space" : editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
   const uiLayerEvents = {
     onPointerEnter: () => {
       pointerOverUiRef.current = true;
@@ -1367,6 +1802,49 @@ export default function Home() {
     [nodeOverrides, simNodes],
   );
   const selectedNode = useMemo(() => visibleNodes.find((node) => node.id === selectedNodeId) ?? null, [selectedNodeId, visibleNodes]);
+  const selectedNodeIdSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds]);
+  const currentPocketNode = useMemo(
+    () => visibleNodes.find((node) => node.id === currentPocketId) ?? null,
+    [currentPocketId, visibleNodes],
+  );
+  const activeThoughtPocket = selectedNode?.thoughtPocket;
+  const innerSpaceNodeIds = useMemo(() => {
+    if (!currentPocketNode) return new Set<string>();
+    const pocket = currentPocketNode.thoughtPocket;
+    const terms = uniqueLabels([
+      currentPocketNode.label,
+      pocket?.triggerKeyword ?? "",
+      pocket?.question ?? "",
+      pocket?.conflict ?? "",
+      pocket?.emotion ?? "",
+      pocket?.conclusion ?? "",
+      ...(pocket?.logic ?? []),
+      ...(pocket?.reasoningFlow ?? []),
+      ...(pocket?.associatedKeywords ?? []),
+      ...(pocket?.nextQuestions ?? []),
+    ]).flatMap(tokenize);
+    const termSet = new Set(terms);
+    const ids = new Set<string>([currentPocketNode.id]);
+
+    for (const node of visibleNodes) {
+      if (node.id === currentPocketNode.id) continue;
+      const nodeTerms = tokenize([
+        node.label,
+        node.thoughtPocket?.triggerKeyword ?? "",
+        node.thoughtPocket?.question ?? "",
+        node.thoughtPocket?.conflict ?? "",
+        node.thoughtPocket?.emotion ?? "",
+        node.thoughtPocket?.conclusion ?? "",
+        ...(node.thoughtPocket?.logic ?? []),
+        ...(node.thoughtPocket?.reasoningFlow ?? []),
+        ...(node.thoughtPocket?.associatedKeywords ?? []),
+        ...(node.thoughtPocket?.nextQuestions ?? []),
+      ].join(" "));
+      if (nodeTerms.some((term) => termSet.has(term))) ids.add(node.id);
+    }
+
+    return ids;
+  }, [currentPocketNode, visibleNodes]);
   const selectedMemo = useMemo(
     () => {
       if (!selectedNode) return null;
@@ -1614,6 +2092,18 @@ export default function Home() {
   }, [selectedNodeId]);
 
   useEffect(() => {
+    if (currentPocketId && !visibleNodes.some((node) => node.id === currentPocketId)) {
+      setCurrentPocketId(null);
+    }
+  }, [currentPocketId, visibleNodes]);
+
+  useEffect(() => {
+    if (selectedNodeIds.length === 0) return;
+    const visibleIds = new Set(visibleNodes.map((node) => node.id));
+    setSelectedNodeIds((current) => current.filter((id) => visibleIds.has(id)));
+  }, [selectedNodeIds.length, visibleNodes]);
+
+  useEffect(() => {
     if (!isGazePanEnabled || isPerformanceMode) {
       autoPanCursorRef.current.active = false;
       return;
@@ -1677,6 +2167,61 @@ export default function Home() {
   }, [selectedNodeId, simNodes]);
 
   useEffect(() => {
+    const insideSpace = (clientX: number, clientY: number) => {
+      const rect = spaceRef.current?.getBoundingClientRect();
+      if (!rect) return false;
+      return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+    };
+    const stopNativeEvent = (event: PointerEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0 || !insideSpace(event.clientX, event.clientY) || isInteractiveTarget(event.target)) return;
+      const node = hitTestVisibleNode(event.clientX, event.clientY);
+      console.log("RAW DOCUMENT POINTER DOWN", event.shiftKey, node?.id ?? "space", event.target);
+      if (event.shiftKey) {
+        if (node) {
+          console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
+          toggleNodeSelection(node.id);
+        } else {
+          beginSelectionDrag(event.clientX, event.clientY);
+        }
+        stopNativeEvent(event);
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && node) {
+        console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
+        addChildNode(node);
+        stopNativeEvent(event);
+      }
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!selectionRectRef.current) return;
+      updateSelectionDrag(event.clientX, event.clientY);
+      stopNativeEvent(event);
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (!selectionRectRef.current) return;
+      finishSelectionDrag();
+      stopNativeEvent(event);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("pointermove", onPointerMove, true);
+    document.addEventListener("pointerup", onPointerUp, true);
+    document.addEventListener("pointercancel", onPointerUp, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("pointermove", onPointerMove, true);
+      document.removeEventListener("pointerup", onPointerUp, true);
+      document.removeEventListener("pointercancel", onPointerUp, true);
+    };
+  }, [camera, selectedNodeIds, visibleNodes, viewport]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const isUndo = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !event.shiftKey;
       const isRedo =
@@ -1689,7 +2234,24 @@ export default function Home() {
         if (isRedo) redoBoard();
         return;
       }
+      if ((event.key === "Delete" || event.key === "Backspace") && !isInteractiveTarget(event.target)) {
+        if (selectedNodeIds.length > 0 || selectedNodeId) {
+          event.preventDefault();
+          deleteSelectedNodes();
+          return;
+        }
+      }
       if (event.key === "Escape") {
+        if (selectionRectRef.current) {
+          finishSelectionDrag();
+          setSelectedNodeIds([]);
+          return;
+        }
+        if (selectedNodeIds.length > 0 || selectedNodeId) {
+          setSelectedNodeIds([]);
+          setSelectedNodeId(null);
+          return;
+        }
         if (detailEditMode) {
           setDetailEditMode(null);
           setDetailDraft("");
@@ -1706,7 +2268,7 @@ export default function Home() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [detailEditMode, galleryImages, galleryIndex, historyFuture, historyPast, previewImage]);
+  }, [detailEditMode, galleryImages, galleryIndex, historyFuture, historyPast, previewImage, selectedNodeId, selectedNodeIds]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -1761,7 +2323,7 @@ export default function Home() {
 
     if (layoutStorageTimerRef.current) window.clearTimeout(layoutStorageTimerRef.current);
     layoutStorageTimerRef.current = window.setTimeout(() => {
-      if (dragNodeRef.current || dragImageRef.current || dragLinkRef.current || layerDragRef.current || panRef.current.active) return;
+      if (dragNodeRef.current || dragImageRef.current || dragLinkRef.current || layerDragRef.current || panRef.current.active || selectionRectRef.current) return;
 
       saveImageAssetsFromOverrides(nodeOverrides);
       const compactNodes = lightweightBoardState(currentBoardState()).nodeOverrides;
@@ -1812,7 +2374,8 @@ export default function Home() {
       dragImageRef.current ||
       dragLinkRef.current ||
       layerDragRef.current ||
-      panRef.current.active
+      panRef.current.active ||
+      selectionRectRef.current
     ) {
       return;
     }
@@ -2024,6 +2587,7 @@ export default function Home() {
 
   function focusNode(node: SimNode) {
     setSelectedNodeId(node.id);
+    setSelectedNodeIds([]);
     setSelectedImageId(null);
     setSelectedLinkId(null);
     setSelectedMemoId(node.level === "project" ? node.memo.id : null);
@@ -2032,6 +2596,27 @@ export default function Home() {
       y: node.y,
       zoom: targetCameraRef.current.zoom,
     };
+  }
+
+  function toggleNodeSelection(id: string) {
+    console.log("shift node click", id);
+    setSelectedNodeIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      const nextIds = [...next];
+      console.log("selectedNodeIds", nextIds);
+      return nextIds;
+    });
+    setSelectedNodeId(null);
+    setSelectedImageId(null);
+    setSelectedLinkId(null);
+    setSelectedMemoId(null);
+  }
+
+  function enterThoughtPocket(node: SimNode) {
+    setCurrentPocketId(node.id);
+    focusNode(node);
   }
 
   function focusImage(image: { id: string; x: number; y: number; linkedNodeId?: string }) {
@@ -2121,6 +2706,7 @@ export default function Home() {
     setNodeOverrides(nextOverrides);
     setSimNodes(simRef.current.map((node) => ({ ...node })));
     setSelectedNodeId(null);
+    setSelectedNodeIds([]);
     setSelectedImageId(null);
     setSelectedLinkId(null);
     setSelectedMemoId(null);
@@ -2159,6 +2745,101 @@ export default function Home() {
       x: (image.x - camera.x) * camera.zoom + viewport.width / 2,
       y: (image.y - camera.y) * camera.zoom + viewport.height / 2,
     };
+  }
+
+  function pointerInSpace(clientX: number, clientY: number) {
+    const rect = spaceRef.current?.getBoundingClientRect();
+    return {
+      x: clientX - (rect?.left ?? 0),
+      y: clientY - (rect?.top ?? 0),
+    };
+  }
+
+  function selectionBounds(rect: SelectionRect) {
+    const left = Math.min(rect.startX, rect.currentX);
+    const right = Math.max(rect.startX, rect.currentX);
+    const top = Math.min(rect.startY, rect.currentY);
+    const bottom = Math.max(rect.startY, rect.currentY);
+    return { left, right, top, bottom };
+  }
+
+  function nodeIdsInSelection(rect: SelectionRect) {
+    const bounds = selectionBounds(rect);
+    return visibleNodes
+      .filter((node) => {
+        const position = screenPosition(node);
+        return position.x >= bounds.left && position.x <= bounds.right && position.y >= bounds.top && position.y <= bounds.bottom;
+      })
+      .map((node) => node.id);
+  }
+
+  function hitTestVisibleNode(clientX: number, clientY: number) {
+    const point = pointerInSpace(clientX, clientY);
+    return visibleNodes
+      .map((node) => {
+        const position = screenPosition(node);
+        const radius = node.level === "project" ? 120 : node.level === "category" ? 82 : 64;
+        const distance = Math.hypot(position.x - point.x, position.y - point.y);
+        return { node, distance, radius };
+      })
+      .filter((item) => item.distance <= item.radius)
+      .sort((a, b) => a.distance - b.distance)[0]?.node;
+  }
+
+  function beginSelectionDrag(clientX: number, clientY: number) {
+    const point = pointerInSpace(clientX, clientY);
+    const next: SelectionRect = {
+      active: true,
+      startX: point.x,
+      startY: point.y,
+      currentX: point.x,
+      currentY: point.y,
+      additive: true,
+    };
+    selectionBaseIdsRef.current = new Set(selectedNodeIds);
+    selectionRectRef.current = next;
+    setSelectionRect(next);
+    console.log("selection start");
+    setSelectedNodeId(null);
+    setSelectedImageId(null);
+    setSelectedLinkId(null);
+    setSelectedMemoId(null);
+    return true;
+  }
+
+  function startSelectionDrag(event: React.PointerEvent<HTMLElement>) {
+    if (event.button !== 0) return false;
+    beginSelectionDrag(event.clientX, event.clientY);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    return true;
+  }
+
+  function updateSelectionDrag(clientX: number, clientY: number) {
+    const current = selectionRectRef.current;
+    if (!current?.active) return false;
+    const point = pointerInSpace(clientX, clientY);
+    const next = { ...current, currentX: point.x, currentY: point.y };
+    selectionRectRef.current = next;
+    setSelectionRect(next);
+    const ids = new Set(selectionBaseIdsRef.current);
+    nodeIdsInSelection(next).forEach((id) => ids.add(id));
+    const nextIds = [...ids];
+    console.log("selection move", nextIds);
+    setSelectedNodeIds(nextIds);
+    return true;
+  }
+
+  function finishSelectionDrag() {
+    if (!selectionRectRef.current) return false;
+    const ids = new Set(selectionBaseIdsRef.current);
+    nodeIdsInSelection(selectionRectRef.current).forEach((id) => ids.add(id));
+    const selectedIds = [...ids];
+    console.log("selection end", selectedIds);
+    setSelectedNodeIds(selectedIds);
+    selectionRectRef.current = null;
+    selectionBaseIdsRef.current = new Set();
+    setSelectionRect(null);
+    return true;
   }
 
   function currentBoardState(): BoardState {
@@ -2575,7 +3256,11 @@ export default function Home() {
   }
 
   function deleteNode(id: string) {
-    const ids = descendantIds(id);
+    deleteNodeIds(descendantIds(id));
+  }
+
+  function deleteNodeIds(ids: Set<string>) {
+    if (ids.size === 0) return;
     setNodeOverrides((current) => ({
       ...current,
       ...Array.from(ids).reduce<Record<string, NodeOverride>>((next, nodeId) => {
@@ -2589,9 +3274,19 @@ export default function Home() {
     simRef.current = simRef.current.filter((node) => !ids.has(node.id));
     setSimNodes(simRef.current.map((node) => ({ ...node })));
     setSelectedNodeId(null);
+    setSelectedNodeIds([]);
     setSelectedMemoId(null);
     setSelectedLinkId(null);
+    setCurrentPocketId((current) => (current && ids.has(current) ? null : current));
     setEditingNodeId(null);
+  }
+
+  function deleteSelectedNodes() {
+    if (selectedNodeIds.length > 0) {
+      deleteNodeIds(new Set(selectedNodeIds));
+      return;
+    }
+    if (selectedNodeId) deleteNodeIds(new Set([selectedNodeId]));
   }
 
   async function addImagesToNode(id: string, files: FileList | null) {
@@ -2853,7 +3548,7 @@ export default function Home() {
     if (!trimmed) return;
 
     if (!analysisPreview) {
-      setAnalysisPreview(analyzeMemoLocally(trimmed));
+      setAnalysisPreview(analyzeMemoLocally(trimmed, inputMode));
       return;
     }
 
@@ -2882,6 +3577,7 @@ export default function Home() {
     }
     setSelectedMemoId(memo.id);
     setSelectedNodeId(null);
+    setSelectedNodeIds([]);
     setText("");
     setAnalysisPreview(null);
   }
@@ -2893,7 +3589,7 @@ export default function Home() {
     setAnalysisError("");
     setAiProgressIndex(0);
 
-    const cacheKey = analysisCacheKey(trimmed);
+    const cacheKey = analysisCacheKey(trimmed, inputMode);
     const cache = readAnalysisCache();
     if (cache[cacheKey]) {
       setAnalysisPreview(cache[cacheKey]);
@@ -2914,7 +3610,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: trimmed }),
+        body: JSON.stringify({ text: trimmed, mode: inputMode }),
       });
       const data = await response.json();
 
@@ -2936,17 +3632,21 @@ export default function Home() {
   function clearAll() {
     setMemos([]);
     setSelectedNodeId(null);
+    setSelectedNodeIds([]);
     setSelectedImageId(null);
     setSelectedMemoId(null);
+    setCurrentPocketId(null);
     setNodeOverrides({});
     setAnalysisPreview(null);
   }
 
   function clearFocus() {
     setSelectedNodeId(null);
+    setSelectedNodeIds([]);
     setSelectedImageId(null);
     setSelectedLinkId(null);
     setSelectedMemoId(null);
+    setCurrentPocketId(null);
     setEditingNodeId(null);
     setPreviewImage(null);
     setLinkModalNodeId(null);
@@ -2954,12 +3654,18 @@ export default function Home() {
 
   function panStart(event: React.PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
+    if (event.shiftKey) {
+      startSelectionDrag(event);
+      return;
+    }
     panRef.current = { active: true, moved: false, x: event.clientX, y: event.clientY };
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function panMove(event: React.PointerEvent<HTMLElement>) {
     scheduleGaze(event);
+
+    if (updateSelectionDrag(event.clientX, event.clientY)) return;
 
     if (layerDragRef.current) {
       const dx = event.clientX - layerDragRef.current.x;
@@ -3024,7 +3730,7 @@ export default function Home() {
       if (node) {
         const dx = point.x - dragging.lastX;
         const dy = point.y - dragging.lastY;
-        const ids = dragging.structure ? descendantIds(dragging.id) : new Set([dragging.id]);
+        const ids = dragging.ids ?? (dragging.structure ? descendantIds(dragging.id) : new Set([dragging.id]));
         for (const moved of simRef.current) {
           if (!ids.has(moved.id)) continue;
           moved.x += dx;
@@ -3069,12 +3775,16 @@ export default function Home() {
   }
 
   function panEnd() {
+    if (finishSelectionDrag()) {
+      lastDragMovedRef.current = true;
+      return;
+    }
     const wasPanMoved = panRef.current.moved;
     panRef.current.active = false;
     panRef.current.moved = false;
     layerDragRef.current = null;
     if (dragNodeRef.current) {
-      const ids = dragNodeRef.current.structure ? descendantIds(dragNodeRef.current.id) : new Set([dragNodeRef.current.id]);
+      const ids = dragNodeRef.current.ids ?? (dragNodeRef.current.structure ? descendantIds(dragNodeRef.current.id) : new Set([dragNodeRef.current.id]));
       for (const node of simRef.current) {
         if (ids.has(node.id)) {
           node.locked = false;
@@ -3156,6 +3866,9 @@ export default function Home() {
         "--gaze-bg-y": `${gaze.y * GAZE_PARALLAX_STRENGTH * 0.55}px`,
       } as React.CSSProperties}
       onPointerDown={panStart}
+      onPointerDownCapture={(event) => {
+        console.log("RAW CANVAS POINTER DOWN", event.shiftKey, event.target);
+      }}
       onPointerMove={panMove}
       onPointerUp={panEnd}
       onPointerCancel={panEnd}
@@ -3186,6 +3899,20 @@ export default function Home() {
     >
       <div className="conscious-space pointer-events-none absolute inset-0" />
       <div className="light-fog pointer-events-none absolute inset-0" />
+      <div className="selection-debug ui-layer" {...uiLayerEvents}>
+        Selected: {selectedNodeIds.length}
+      </div>
+      {selectionRect && (
+        <div
+          className="selection-rectangle pointer-events-none"
+          style={{
+            left: selectionBounds(selectionRect).left,
+            top: selectionBounds(selectionRect).top,
+            width: selectionBounds(selectionRect).right - selectionBounds(selectionRect).left,
+            height: selectionBounds(selectionRect).bottom - selectionBounds(selectionRect).top,
+          }}
+        />
+      )}
       <div className="particle-field pointer-events-none absolute inset-0">
         {particles.map((particle) => (
           <span
@@ -3316,8 +4043,12 @@ export default function Home() {
         const ancestor = ancestorIndex >= 0;
         const distance = Math.hypot(node.x - camera.x, node.y - camera.y);
         const selected = selectedNodeId === node.id;
+        const multiSelected = selectedNodeIdSet.has(node.id);
         const hovered = hoveredNodeId === node.id;
-        const dimmed = Boolean(selectedNodeId && !selectedNeighbors.has(node.id) && !ancestor);
+        const innerDimmed = Boolean(currentPocketId && !innerSpaceNodeIds.has(node.id));
+        const dimmed = currentPocketId
+          ? innerDimmed && !multiSelected
+          : Boolean((selectedNodeId && !selectedNeighbors.has(node.id) && !ancestor) || (selectedNodeIds.length > 0 && !multiSelected));
         const neighbor = selectedNodeId && selectedNeighbors.has(node.id);
         const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
         const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
@@ -3332,14 +4063,16 @@ export default function Home() {
         const zDepth = edgeDepth + focusDepth - clamp(distance / 18, 0, DEPTH_STRENGTH);
         const ancestorOpacity = ancestor ? clamp(0.7 - ancestorIndex * 0.15, 0.32, 0.7) : 0;
         const ancestorBlur = isPerformanceMode ? 0 : ancestor ? clamp(0.25 + ancestorIndex * 0.12, 0.25, 0.5) : 0;
-        const depthOpacity = selected || hovered ? 1 : ancestor ? ancestorOpacity : clamp(1 - distance / 1900 + zDepth / 1400, 0.46, 0.96);
-        const depthBlur = isPerformanceMode || selected || hovered ? 0 : ancestor ? ancestorBlur : clamp(distance / 1600 - zDepth / 900, 0, 0.35);
+        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : clamp(1 - distance / 1900 + zDepth / 1400, 0.46, 0.96);
+        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : clamp(distance / 1600 - zDepth / 900, 0, 0.35);
         const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
         const curveRotateY = -curveX * CURVE_STRENGTH + gaze.x * GAZE_PARALLAX_STRENGTH * 0.8;
         const curveRotateX = curveY * CURVE_STRENGTH * 0.72 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.6;
         const scale =
           (selected
             ? 1.72
+            : multiSelected
+              ? node.level === "project" ? 1.1 : 0.94
             : ancestor
               ? clamp(1.2 + ancestorIndex * 0.15, 1.2, 1.5)
               : neighbor
@@ -3355,6 +4088,11 @@ export default function Home() {
             lastDragMovedRef.current = false;
             return;
           }
+          if (event.shiftKey) {
+            event.preventDefault();
+            toggleNodeSelection(node.id);
+            return;
+          }
           if (event.metaKey || event.ctrlKey) {
             event.preventDefault();
             addChildNode(node);
@@ -3365,10 +4103,13 @@ export default function Home() {
 
         return (
           <div
-            className={`${nodeClass(node.level, selected, dimmed)} ${colorClass(node.color)} ${ancestor && !selected ? "thought-ancestor" : ""} ${editingNodeId === node.id ? "thought-editing" : ""}`}
+            className={`${nodeClass(node.level, selected, dimmed)} ${colorClass(node.color)} ${multiSelected ? "thought-multi-selected" : ""} ${ancestor && !selected ? "thought-ancestor" : ""} ${editingNodeId === node.id ? "thought-editing" : ""}`}
             key={node.id}
             role="button"
             tabIndex={0}
+            onClickCapture={(event) => {
+              console.log("RAW NODE CLICK", node.id, event.shiftKey);
+            }}
             onClick={activateNode}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -3378,7 +4119,7 @@ export default function Home() {
             }}
             onDoubleClick={(event) => {
               event.stopPropagation();
-              focusNode(node);
+              enterThoughtPocket(node);
             }}
             onPointerEnter={() => {
               if (!isPerformanceMode) setHoveredNodeId(node.id);
@@ -3387,22 +4128,26 @@ export default function Home() {
               if (!isPerformanceMode) setHoveredNodeId((current) => (current === node.id ? null : current));
             }}
             onPointerDown={(event) => {
+              console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
               event.stopPropagation();
+              if (event.shiftKey) return;
               const point = worldFromPointer(event.clientX, event.clientY);
-              const groupDrag = isStructureEdit || node.level !== "detail";
+              const groupIds = selectedNodeIdSet.has(node.id) && selectedNodeIds.length > 1 ? new Set(selectedNodeIds) : undefined;
+              const groupDrag = Boolean(groupIds) || isStructureEdit || node.level !== "detail";
               dragNodeRef.current = {
                 id: node.id,
                 moved: false,
                 structure: groupDrag,
                 lastX: point.x,
                 lastY: point.y,
+                ids: groupIds,
               };
               event.currentTarget.setPointerCapture(event.pointerId);
             }}
             style={{
               left: position.x,
               top: position.y,
-              zIndex: selected ? 32 : ancestor ? 30 - ancestorIndex : neighbor ? 18 : undefined,
+              zIndex: selected ? 32 : multiSelected ? 28 : ancestor ? 30 - ancestorIndex : neighbor ? 18 : undefined,
               opacity: dimmed ? undefined : neighbor && !selected ? Math.max(depthOpacity, 0.58) : depthOpacity,
               filter: dimmed || depthBlur <= 0 ? undefined : `blur(${depthBlur}px)`,
               transform: `translate(-50%, -50%) translate3d(${gaze.x * GAZE_PARALLAX_STRENGTH * 0.72}px, ${gaze.y * GAZE_PARALLAX_STRENGTH * 0.58}px, ${zDepth}px) rotateX(${curveRotateX}deg) rotateY(${curveRotateY}deg) scale(${scale})`,
@@ -3453,6 +4198,7 @@ export default function Home() {
             {selected && editingNodeId !== node.id && (
               <span className="node-actions floating-action-layer" {...uiLayerEvents} onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
                 <button onClick={() => setEditingNodeId(node.id)} type="button">Edit</button>
+                <button onClick={() => enterThoughtPocket(node)} type="button">진입</button>
                 <button onClick={() => addChildNode(node)} type="button">+</button>
                 <button
                   onClick={() => {
@@ -3500,6 +4246,7 @@ export default function Home() {
               linkedNode.parentId === selectedNode.parentId),
         );
         const activeProjectImage = Boolean(selectedNode && linkedNode?.project === selectedNode.project);
+        const innerHidden = Boolean(currentPocketId && image.linkedNodeId && !innerSpaceNodeIds.has(image.linkedNodeId));
         const distance = Math.hypot(image.x - camera.x, image.y - camera.y);
         const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
         const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
@@ -3516,7 +4263,7 @@ export default function Home() {
                     opacity: clamp(1 - distance / 2100, 0.54, 0.9),
                     scale: image.level === "project" ? 1 : 0.84,
                   };
-        const opacity = hovered && !selected ? clamp(depthState.opacity + 0.25, 0, 1) : depthState.opacity;
+        const opacity = innerHidden ? 0.16 : hovered && !selected ? clamp(depthState.opacity + 0.25, 0, 1) : depthState.opacity;
         const scale = (depthState.scale + (hovered && !selected ? 0.08 : 0)) * (1 - edgeAmount * EDGE_DISTORTION_STRENGTH) * camera.zoom;
         const zDepth = selected ? 180 : hovered ? 82 : image.z ?? 0;
         const rotateX = curveY * CURVE_STRENGTH * 0.45 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.45;
@@ -3568,6 +4315,7 @@ export default function Home() {
             }}
             onPointerMove={(event) => {
               enterInteractionSafeZone();
+              if (updateSelectionDrag(event.clientX, event.clientY)) return;
               if (!dragImageRef.current) event.stopPropagation();
             }}
             onWheel={(event) => event.stopPropagation()}
@@ -3600,11 +4348,12 @@ export default function Home() {
         const position = imageScreenPosition(link);
         const selected = selectedLinkId === link.id;
         const hovered = hoveredLinkId === link.id;
+        const innerHidden = Boolean(currentPocketId && !innerSpaceNodeIds.has(link.linkedNodeId));
         const distance = Math.hypot(link.x - camera.x, link.y - camera.y);
         const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
         const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
         const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
-        const opacity = selected || hovered ? 1 : clamp(1 - distance / 2100, 0.54, 0.94);
+        const opacity = innerHidden ? 0.16 : selected || hovered ? 1 : clamp(1 - distance / 2100, 0.54, 0.94);
         const scale = (selected ? 1.25 : hovered ? 1.08 : 0.86) * (1 - edgeAmount * EDGE_DISTORTION_STRENGTH) * camera.zoom;
         const zDepth = selected ? 165 : hovered ? 72 : link.z ?? 0;
         const rotateX = curveY * CURVE_STRENGTH * 0.38 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.36;
@@ -3655,6 +4404,7 @@ export default function Home() {
             }}
             onPointerMove={(event) => {
               enterInteractionSafeZone();
+              if (updateSelectionDrag(event.clientX, event.clientY)) return;
               if (!dragLinkRef.current) event.stopPropagation();
             }}
             onWheel={(event) => event.stopPropagation()}
@@ -3718,9 +4468,33 @@ export default function Home() {
         style={{ left: inputPosition.x, top: inputPosition.y, zIndex: activeLayer === "input" ? 70 : 40 }}
       >
         <p className="layer-kicker">Mind Orbit</p>
+        <div className="input-mode-toggle" role="group" aria-label="입력 모드">
+          <button
+            className={inputMode === "memo" ? "input-mode-active" : ""}
+            onClick={() => {
+              setInputMode("memo");
+              setAnalysisPreview(null);
+              setAnalysisError("");
+            }}
+            type="button"
+          >
+            메모 입력
+          </button>
+          <button
+            className={inputMode === "question" ? "input-mode-active" : ""}
+            onClick={() => {
+              setInputMode("question");
+              setAnalysisPreview(null);
+              setAnalysisError("");
+            }}
+            type="button"
+          >
+            질문 입력
+          </button>
+        </div>
         <textarea
           className="thought-input"
-          placeholder="생각을 적으면 공간에 배치됩니다."
+          placeholder={inputMode === "question" ? "질문을 적으면 Thought Pocket으로 구조화됩니다." : "생각을 적으면 공간에 배치됩니다."}
           value={text}
           onChange={(event) => {
             setText(event.target.value);
@@ -3730,82 +4504,63 @@ export default function Home() {
         />
         {isAiAnalyzing && (
           <div className="ai-analysis-status" aria-live="polite">
-            <span>AI가 프로젝트 구조를 분석 중입니다...</span>
+            <span>{inputMode === "question" ? "AI가 Thought Pocket을 분석 중입니다..." : "AI가 프로젝트 구조를 분석 중입니다..."}</span>
             <strong>{AI_ANALYSIS_MESSAGES[aiProgressIndex]}</strong>
-            <small>문맥 관계와 키워드 계층을 정리하고 있습니다...</small>
+            <small>{inputMode === "question" ? "질문의 배경과 다음 사고 흐름을 정리하고 있습니다..." : "문맥 관계와 키워드 계층을 정리하고 있습니다..."}</small>
           </div>
         )}
         {analysisError && <p className="analysis-error">{analysisError}</p>}
         {analysisPreview && (
           <div className="analysis-preview analysis-preview-ready">
-            <p className="analysis-title">분석 미리보기</p>
-            <input
-              className="analysis-input"
-              onChange={(event) =>
-                setAnalysisPreview((current) => current && { ...current, projectTitle: event.target.value })
-              }
-              value={analysisPreview.projectTitle}
-            />
-            <textarea
-              className="analysis-textarea"
-              onChange={(event) =>
-                setAnalysisPreview((current) => current && { ...current, projectSummary: event.target.value })
-              }
-              value={analysisPreview.projectSummary}
-            />
-            <label className="analysis-label">
-              Categories
-              <textarea
-                className="analysis-textarea compact"
-                onChange={(event) =>
-                  setAnalysisPreview((current) =>
-                    current && {
-                      ...current,
-                      categories: event.target.value
-                        .split("\n")
-                        .map((title, index) => ({
-                          title: title.trim(),
-                          summary: current.categories[index]?.summary ?? "",
-                          keywords: current.categories[index]?.keywords ?? [],
-                        }))
-                        .filter((category) => category.title),
-                    },
-                  )
-                }
-                value={analysisPreview.categories.map((category) => category.title).join("\n")}
-              />
-            </label>
-            <label className="analysis-label">
-              Keywords
-              <input
-                className="analysis-input"
-                onChange={(event) =>
-                  setAnalysisPreview((current) =>
-                    current && {
-                      ...current,
-                      keywords: event.target.value
-                        .split(",")
-                        .map((keyword) => keyword.trim())
-                        .filter(Boolean),
-                    },
-                  )
-                }
-                value={analysisPreview.keywords.join(", ")}
-              />
-            </label>
-            <div className="analysis-chip-row">
-              {analysisPreview.suggestedNodes.slice(0, 5).map((node, index) => (
-                <span key={`${node.label}-${index}`}>{node.label}</span>
-              ))}
-            </div>
-            <div className="analysis-snippets">
-              {analysisPreview.relatedTextSnippets.slice(0, 2).map((snippet, index) => (
-                <p key={`${snippet.label}-${index}`}>
-                  <strong>{snippet.label}</strong>
-                  {snippet.text}
-                </p>
-              ))}
-            </div>
+            <p className="analysis-title">Thought Pocket 미리보기</p>
+            <section className="analysis-pocket-section">
+              <strong>핵심 질문</strong>
+              <p>{analysisPreview.thoughtPocket?.question ?? analysisPreview.projectTitle}</p>
+            </section>
+            <section className="analysis-pocket-section">
+              <strong>사고 요약</strong>
+              <p>{analysisPreview.thoughtPocket?.summary ?? analysisPreview.projectSummary}</p>
+            </section>
+            {(analysisPreview.thoughtPocket?.reasoningFlow?.length ?? 0) > 0 && (
+              <section className="analysis-pocket-section">
+                <strong>사고 흐름</strong>
+                <ol>
+                  {analysisPreview.thoughtPocket?.reasoningFlow?.map((item, index) => <li key={`preview-flow-${index}`}>{item}</li>)}
+                </ol>
+              </section>
+            )}
+            {(analysisPreview.thoughtPocket?.nextQuestions?.length ?? 0) > 0 && (
+              <section className="analysis-pocket-section">
+                <strong>다음 질문</strong>
+                <ul>
+                  {analysisPreview.thoughtPocket?.nextQuestions?.map((item, index) => <li key={`preview-next-${index}`}>{item}</li>)}
+                </ul>
+              </section>
+            )}
+            {(analysisPreview.thoughtPocket?.possibleConclusions?.length ?? 0) > 0 && (
+              <section className="analysis-pocket-section">
+                <strong>가능한 결론</strong>
+                <ul>
+                  {analysisPreview.thoughtPocket?.possibleConclusions?.map((item, index) => <li key={`preview-conclusion-${index}`}>{item}</li>)}
+                </ul>
+              </section>
+            )}
+            {(analysisPreview.thoughtPocket?.actionSuggestions?.length ?? 0) > 0 && (
+              <section className="analysis-pocket-section">
+                <strong>실행 제안</strong>
+                <ul>
+                  {analysisPreview.thoughtPocket?.actionSuggestions?.map((item, index) => <li key={`preview-action-${index}`}>{item}</li>)}
+                </ul>
+              </section>
+            )}
+            <section className="analysis-pocket-section">
+              <strong>보조 키워드</strong>
+              <div className="analysis-chip-row">
+                {(analysisPreview.thoughtPocket?.associatedKeywords ?? analysisPreview.keywords).slice(0, 8).map((keyword, index) => (
+                  <span key={`${keyword}-${index}`}>{keyword}</span>
+                ))}
+              </div>
+            </section>
           </div>
         )}
         <button className="line-command" onClick={addMemo}>
@@ -3948,6 +4703,11 @@ export default function Home() {
         onWheel={stopFloatingWheel}
         style={{ zIndex: activeLayer === "controls" ? 75 : 45 }}
       >
+        {currentPocketId && (
+          <button className="control-button inner-space-return" onClick={() => setCurrentPocketId(null)} type="button">
+            White Hall로 돌아가기
+          </button>
+        )}
         <button className="control-button" onClick={centerView} type="button">센터</button>
         <button className="control-button" onClick={resetLayout} type="button">초기화</button>
         <button className="control-button" onClick={() => saveBoardSnapshot(false)} type="button">저장 시점</button>
@@ -4179,10 +4939,100 @@ export default function Home() {
                 <button onClick={cancelDetailEdit} type="button">취소</button>
               </div>
             </>
+          ) : activeThoughtPocket ? (
+            <div className="thought-pocket-detail">
+              {(activeThoughtPocket.triggerKeyword || activeThoughtPocket.question) && (
+                <div className="thought-pocket-lead">
+                  {activeThoughtPocket.triggerKeyword && <span>{activeThoughtPocket.triggerKeyword}</span>}
+                  {activeThoughtPocket.question && <strong>{activeThoughtPocket.question}</strong>}
+                </div>
+              )}
+              {activeThoughtPocket.summary && (
+                <section>
+                  <h3>요약</h3>
+                  <p>{activeThoughtPocket.summary}</p>
+                </section>
+              )}
+              {activeThoughtPocket.conflict && (
+                <section>
+                  <h3>갈등</h3>
+                  <p>{activeThoughtPocket.conflict}</p>
+                </section>
+              )}
+              {(activeThoughtPocket.reasoningFlow?.length ?? 0) > 0 && (
+                <section>
+                  <h3>사고 흐름</h3>
+                  <ol>
+                    {activeThoughtPocket.reasoningFlow?.map((item, index) => <li key={`flow-${index}`}>{item}</li>)}
+                  </ol>
+                </section>
+              )}
+              {(activeThoughtPocket.logic?.length ?? 0) > 0 && (
+                <section>
+                  <h3>논리</h3>
+                  <ul>
+                    {activeThoughtPocket.logic?.map((item, index) => <li key={`logic-${index}`}>{item}</li>)}
+                  </ul>
+                </section>
+              )}
+              {activeThoughtPocket.emotion && (
+                <section>
+                  <h3>감정</h3>
+                  <p>{activeThoughtPocket.emotion}</p>
+                </section>
+              )}
+              {activeThoughtPocket.conclusion && (
+                <section>
+                  <h3>결론</h3>
+                  <p>{activeThoughtPocket.conclusion}</p>
+                </section>
+              )}
+              {(activeThoughtPocket.nextQuestions?.length ?? 0) > 0 && (
+                <section>
+                  <h3>다음 질문</h3>
+                  <ul>
+                    {activeThoughtPocket.nextQuestions?.map((item, index) => <li key={`next-${index}`}>{item}</li>)}
+                  </ul>
+                </section>
+              )}
+              {(activeThoughtPocket.associatedKeywords?.length ?? 0) > 0 && (
+                <section>
+                  <h3>보조 키워드</h3>
+                  <div className="thought-pocket-chips">
+                    {activeThoughtPocket.associatedKeywords?.map((keyword, index) => <span key={`keyword-${index}`}>{keyword}</span>)}
+                  </div>
+                </section>
+              )}
+              {(activeThoughtPocket.possibleConclusions?.length ?? 0) > 0 && (
+                <section>
+                  <h3>가능한 결론</h3>
+                  <ul>
+                    {activeThoughtPocket.possibleConclusions?.map((item, index) => <li key={`conclusion-${index}`}>{item}</li>)}
+                  </ul>
+                </section>
+              )}
+              {(activeThoughtPocket.actionSuggestions?.length ?? 0) > 0 && (
+                <section>
+                  <h3>실행 제안</h3>
+                  <ul>
+                    {activeThoughtPocket.actionSuggestions?.map((item, index) => <li key={`action-${index}`}>{item}</li>)}
+                  </ul>
+                </section>
+              )}
+            </div>
           ) : detailExpanded ? (
             <p className="detail-body detail-summary">{selectedMemo.text}</p>
           ) : (
             <p className="detail-body detail-summary">{selectedDetailText}</p>
+          )}
+          {selectedNode && (
+            <button
+              className="detail-toggle"
+              onClick={() => enterThoughtPocket(selectedNode)}
+              type="button"
+            >
+              진입
+            </button>
           )}
           {!detailEditMode && (
             <button
