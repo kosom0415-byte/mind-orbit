@@ -2283,7 +2283,7 @@ export default function Home() {
         stopNativeEvent(event);
         return;
       }
-      if (event.shiftKey && insideSpace(event.clientX, event.clientY)) {
+      if ((event.shiftKey || suppressNextCanvasClickRef.current) && insideSpace(event.clientX, event.clientY)) {
         console.log("selection persisted", selectedNodeIdsRef.current.length);
         stopNativeEvent(event);
       }
@@ -4225,6 +4225,12 @@ export default function Home() {
         const activateNode = (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
           if (lastDragMovedRef.current) {
             lastDragMovedRef.current = false;
+            return;
+          }
+          if (suppressNextCanvasClickRef.current) {
+            suppressNextCanvasClickRef.current = false;
+            event.preventDefault();
+            console.log("selection persisted", selectedNodeIdsRef.current.length);
             return;
           }
           if (event.shiftKey) {
