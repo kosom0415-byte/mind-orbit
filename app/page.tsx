@@ -1802,8 +1802,10 @@ export default function Home() {
   const gazePanEnabledRef = useRef(false);
   const pointerOverUiRef = useRef(false);
   const lastDragMovedRef = useRef(false);
+  const suppressNextCanvasClickRef = useRef(false);
   const selectionRectRef = useRef<SelectionRect | null>(null);
   const selectionBaseIdsRef = useRef<Set<string>>(new Set());
+  const selectedNodeIdsRef = useRef<string[]>([]);
   const panRef = useRef<{ active: boolean; moved: boolean; x: number; y: number }>({ active: false, moved: false, x: 0, y: 0 });
   const layerDragRef = useRef<{
     layer: LayerName;
@@ -1836,6 +1838,10 @@ export default function Home() {
   useEffect(() => {
     viewportRef.current = viewport;
   }, [viewport]);
+
+  useEffect(() => {
+    selectedNodeIdsRef.current = selectedNodeIds;
+  }, [selectedNodeIds]);
 
   useEffect(() => {
     gazePanEnabledRef.current = isGazePanEnabled;
@@ -2250,6 +2256,7 @@ export default function Home() {
       const node = hitTestVisibleNode(event.clientX, event.clientY);
       console.log("RAW DOCUMENT POINTER DOWN", event.shiftKey, node?.id ?? "space", event.target);
       if (event.shiftKey) {
+        suppressNextCanvasClickRef.current = true;
         if (node) {
           console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
           toggleNodeSelection(node.id);
@@ -2271,9 +2278,15 @@ export default function Home() {
       stopNativeEvent(event);
     };
     const onPointerUp = (event: PointerEvent) => {
-      if (!selectionRectRef.current) return;
-      finishSelectionDrag();
-      stopNativeEvent(event);
+      if (selectionRectRef.current) {
+        finishSelectionDrag();
+        stopNativeEvent(event);
+        return;
+      }
+      if (event.shiftKey && insideSpace(event.clientX, event.clientY)) {
+        console.log("selection persisted", selectedNodeIdsRef.current.length);
+        stopNativeEvent(event);
+      }
     };
 
     document.addEventListener("pointerdown", onPointerDown, true);
@@ -2675,7 +2688,9 @@ export default function Home() {
       if (next.has(id)) next.delete(id);
       else next.add(id);
       const nextIds = [...next];
+      selectedNodeIdsRef.current = nextIds;
       console.log("selectedNodeIds", nextIds);
+      console.log("selection persisted", nextIds.length);
       return nextIds;
     });
     setSelectedNodeId(null);
@@ -2904,11 +2919,13 @@ export default function Home() {
     const ids = new Set(selectionBaseIdsRef.current);
     nodeIdsInSelection(selectionRectRef.current).forEach((id) => ids.add(id));
     const selectedIds = [...ids];
+    selectedNodeIdsRef.current = selectedIds;
     console.log("selection end", selectedIds);
     setSelectedNodeIds(selectedIds);
     selectionRectRef.current = null;
     selectionBaseIdsRef.current = new Set();
     setSelectionRect(null);
+    console.log("selection persisted", selectedIds.length);
     return true;
   }
 
@@ -3771,6 +3788,7 @@ export default function Home() {
   function panStart(event: React.PointerEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
     if (event.shiftKey) {
+      suppressNextCanvasClickRef.current = true;
       startSelectionDrag(event);
       return;
     }
@@ -3994,6 +4012,11 @@ export default function Home() {
       }}
       onWheel={zoomSpace}
       onClick={(event) => {
+        if (suppressNextCanvasClickRef.current) {
+          suppressNextCanvasClickRef.current = false;
+          console.log("selection persisted", selectedNodeIdsRef.current.length);
+          return;
+        }
         if (event.target !== event.currentTarget) return;
         if (detailEditMode) return;
         if (lastDragMovedRef.current) {
@@ -4206,7 +4229,6 @@ export default function Home() {
           }
           if (event.shiftKey) {
             event.preventDefault();
-            toggleNodeSelection(node.id);
             return;
           }
           if (event.metaKey || event.ctrlKey) {
