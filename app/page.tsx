@@ -13,6 +13,7 @@ import {
 import { edgeStrokeColor, edgeStrokeWidth, isHierarchyEdge, isSemanticEdge } from "../lib/mind/edgeRender";
 import type { GraphEdge } from "../lib/mind/types";
 import { getEdgeOpacity, getVisibleEdges } from "../lib/mind/visibilityEngine";
+import EmptyState from "./components/EmptyState";
 
 type NodeLevel = "project" | "category" | "detail";
 type InputMode = "memo" | "question";
@@ -2876,8 +2877,9 @@ export default function Home() {
     } catch (error) {
       const message = getErrorMessage(error);
       console.warn("클라우드 저장 실패:", message);
-      setShareNotice(`클라우드 저장 실패: ${message}`);
-      alert(`클라우드 저장 실패: ${message}`);
+      const friendly = `클라우드 저장 중 오류가 발생했습니다. 네트워크 또는 Supabase 설정을 확인해주세요. (${message})`;
+      setShareNotice(friendly);
+      alert(friendly);
     } finally {
       setIsSharing(false);
     }
@@ -2903,8 +2905,9 @@ export default function Home() {
       if (error) {
         const message = getErrorMessage(error);
         console.warn("클라우드 불러오기 실패:", message);
-        setShareNotice(`클라우드 불러오기 실패: ${message}`);
-        alert(`클라우드 불러오기 실패: ${message}`);
+        const friendly = `클라우드 보드 불러오기 중 문제가 발생했습니다. 설정과 네트워크를 확인하고 다시 시도해주세요. (${message})`;
+        setShareNotice(friendly);
+        alert(friendly);
         return;
       }
 
@@ -2922,8 +2925,9 @@ export default function Home() {
     } catch (error) {
       const message = getErrorMessage(error);
       console.warn("클라우드 불러오기 실패:", message);
-      setShareNotice(`클라우드 불러오기 실패: ${message}`);
-      alert(`클라우드 불러오기 실패: ${message}`);
+      const friendly = `클라우드 보드 불러오기 중 문제가 발생했습니다. 설정과 네트워크를 확인하고 다시 시도해주세요. (${message})`;
+      setShareNotice(friendly);
+      alert(friendly);
     } finally {
       setIsSharing(false);
     }
@@ -3822,9 +3826,7 @@ export default function Home() {
         })}
       </svg>
 
-      {simNodes.length === 0 && (
-        <div className="empty-whisper pointer-events-none">생각을 입력하면 공간이 열립니다.</div>
-      )}
+      {simNodes.length === 0 && <EmptyState />}
 
       {showOnboarding && (
         <div className="onboarding-whisper pointer-events-none">
