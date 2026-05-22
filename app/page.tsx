@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@supabase/supabase-js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGestures } from "../hooks/useGestures";
 import { useSelection } from "../hooks/useSelection";
 import {
@@ -1811,6 +1811,19 @@ export default function Home() {
         })),
     [nodeOverrides, simNodes],
   );
+  const simNodeMap = useMemo(() => new Map(simNodes.map((node) => [node.id, node])), [simNodes]);
+  const visibleNodeMap = useMemo(() => new Map(visibleNodes.map((node) => [node.id, node])), [visibleNodes]);
+  const screenPositionMap = useMemo(
+    () => new Map(simNodes.map((node) => [node.id, screenPosition(node)])),
+    [simNodes, camera, viewport],
+  );
+  const gazeParallax = useMemo(
+    () => ({ x: gaze.x * GAZE_PARALLAX_STRENGTH, y: gaze.y * GAZE_PARALLAX_STRENGTH }),
+    [gaze],
+  );
+  const renderPerfRef = useRef({ count: 0, lastLog: performance.now() });
+  renderPerfRef.current.count += 1;
+
   const {
     selectedNodeIds,
     setSelectedNodeIds,
@@ -1839,10 +1852,10 @@ export default function Home() {
     setSelectedMemoId,
     isInteractiveTarget,
   });
-  const selectedNode = useMemo(() => visibleNodes.find((node) => node.id === selectedNodeId) ?? null, [selectedNodeId, visibleNodes]);
+  const selectedNode = useMemo(() => (selectedNodeId ? visibleNodeMap.get(selectedNodeId) ?? null : null), [selectedNodeId, visibleNodeMap]);
   const currentPocketNode = useMemo(
-    () => visibleNodes.find((node) => node.id === currentPocketId) ?? null,
-    [currentPocketId, visibleNodes],
+    () => (currentPocketId ? visibleNodeMap.get(currentPocketId) ?? null : null),
+    [currentPocketId, visibleNodeMap],
   );
   const activeThoughtPocket = selectedNode?.thoughtPocket;
   const innerSpaceNodeIds = useMemo(() => {
@@ -1895,6 +1908,20 @@ export default function Home() {
       }),
     [currentPocketId, graphEdges, innerSpaceNodeIds, selectedNodeId],
   );
+
+  useEffect(() => {
+    if (!isPerformanceMode) return;
+    const now = performance.now();
+    const log = renderPerfRef.current;
+    if (now - log.lastLog >= 2500) {
+      console.debug(
+        `[perf] render=${log.count} nodes=${visibleNodes.length} edges=${visibleGraphEdges.length} images=${imageNodes.length} links=${linkNodes.length}`,
+      );
+      log.count = 0;
+      log.lastLog = now;
+    }
+  });
+
   const selectedMemo = useMemo(
     () => {
       if (!selectedNode) return null;
@@ -2520,9 +2547,12 @@ export default function Home() {
     let animationId = 0;
 
     const tick = () => {
+      const perfStart = isPerformanceMode ? performance.now() : 0;
       const current = simRef.current;
       const byId = new Map(current.map((node) => [node.id, node]));
       const projectIndex = new Map(projects.map((project, index) => [project, index]));
+      const repulsionThreshold = 900;
+      const repulsionThresholdSq = repulsionThreshold * repulsionThreshold;
 
       for (let i = 0; i < current.length; i += 1) {
         const a = current[i];
@@ -2531,8 +2561,9 @@ export default function Home() {
           const b = current[j];
           const dx = b.x - a.x;
           const dy = b.y - a.y;
-          const distanceSq = Math.max(dx * dx + dy * dy, 160);
-          const distance = Math.sqrt(distanceSq);
+          const distanceSq = dx * dx + dy * dy;
+          if (distanceSq > repulsionThresholdSq) continue;
+          const distance = Math.sqrt(Math.max(distanceSq, 160));
           const force = (a.project === b.project ? 5400 : 7800) / distanceSq;
           const fx = (dx / distance) * force;
           const fy = (dy / distance) * force;
@@ -2612,6 +2643,13 @@ export default function Home() {
 
       if (cameraMoving || publishNodes) setCamera({ ...cameraNow });
       if (publishNodes) setSimNodes(current.map((node) => ({ ...node })));
+
+      if (isPerformanceMode && frame % 30 === 0) {
+        console.debug(
+          `[perf] tick frame=${frame} nodes=${current.length} edges=${visibleGraphEdges.length} cameraMoving=${cameraMoving} publishNodes=${publishNodes} dt=${Math.round(performance.now() - perfStart)}ms`,
+        );
+      }
+
       animationId = requestAnimationFrame(tick);
     };
 
@@ -3742,12 +3780,12 @@ export default function Home() {
           </filter>
         </defs>
         {visibleGraphEdges.map((edge) => {
-          const source = simNodes.find((node) => node.id === edge.source);
-          const target = simNodes.find((node) => node.id === edge.target);
+          const source = simNodeMap.get(edge.source);
+          const target = simNodeMap.get(edge.target);
           if (!source || !target) return null;
 
-          const sourceScreen = screenPosition(source);
-          const targetScreen = screenPosition(target);
+          const sourceScreen = screenPositionMap.get(edge.source) ?? screenPosition(source);
+          const targetScreen = screenPositionMap.get(edge.target) ?? screenPosition(target);
           const active = selectedNodeId && (edge.source === selectedNodeId || edge.target === selectedNodeId);
           const opacity = getEdgeOpacity(edge, {
             focusedNodeId: selectedNodeId,
@@ -3778,10 +3816,10 @@ export default function Home() {
           );
         })}
         {imageNodes.map((image) => {
-          const source = simNodes.find((node) => node.id === image.linkedNodeId);
+          const source = simNodeMap.get(image.linkedNodeId);
           if (!source) return null;
 
-          const sourceScreen = screenPosition(source);
+          const sourceScreen = screenPositionMap.get(image.linkedNodeId) ?? screenPosition(source);
           const targetScreen = imageScreenPosition(image);
           const active = selectedImageId === image.id || selectedNodeId === image.linkedNodeId;
           const sameActiveProject = selectedNode ? source.project === selectedNode.project : true;
@@ -3801,10 +3839,10 @@ export default function Home() {
           );
         })}
         {linkNodes.map((link) => {
-          const source = simNodes.find((node) => node.id === link.linkedNodeId);
+          const source = simNodeMap.get(link.linkedNodeId);
           if (!source) return null;
 
-          const sourceScreen = screenPosition(source);
+          const sourceScreen = screenPositionMap.get(link.linkedNodeId) ?? screenPosition(source);
           const targetScreen = imageScreenPosition(link);
           const active = selectedLinkId === link.id || selectedNodeId === link.linkedNodeId;
           const sameActiveProject = selectedNode ? source.project === selectedNode.project : true;
@@ -3835,7 +3873,7 @@ export default function Home() {
       )}
 
       {visibleNodes.map((node) => {
-        const position = screenPosition(node);
+        const position = screenPositionMap.get(node.id) ?? screenPosition(node);
         const ancestorIndex = selectedAncestorTrail.indexOf(node.id);
         const ancestor = ancestorIndex >= 0;
         const distance = Math.hypot(node.x - camera.x, node.y - camera.y);

@@ -106,6 +106,8 @@ export function useGestures({
   const pendingImagePositionRef = useRef<{ linkedNodeId: string; imageId: string; x: number; y: number } | null>(null);
   const pendingLinkPositionRef = useRef<{ linkedNodeId: string; linkId: string; x: number; y: number } | null>(null);
   const mediaPositionFrameRef = useRef<number | null>(null);
+  const pendingPointerMoveRef = useRef<{ clientX: number; clientY: number } | null>(null);
+  const pendingPointerMoveFrameRef = useRef<number | null>(null);
 
   const flushPendingMediaPosition = () => {
     mediaPositionFrameRef.current = null;
@@ -120,6 +122,82 @@ export function useGestures({
     if (linkPosition) {
       updateNodeLinkPosition(linkPosition.linkedNodeId, linkPosition.linkId, linkPosition.x, linkPosition.y);
     }
+  };
+
+  const flushPendingPointerMove = () => {
+    pendingPointerMoveFrameRef.current = null;
+    const pending = pendingPointerMoveRef.current;
+    pendingPointerMoveRef.current = null;
+    if (!pending) return;
+
+    if (updateSelectionDrag(pending.clientX, pending.clientY)) return;
+
+    if (layerDragRef.current) {
+      const dx = pending.clientX - layerDragRef.current.x;
+      const dy = pending.clientY - layerDragRef.current.y;
+      const next = {
+        x: clamp(layerDragRef.current.startX + (layerDragRef.current.layer === "detail" ? -dx : dx), 12, viewport.width - 220),
+        y: clamp(layerDragRef.current.startY + (layerDragRef.current.layer === "input" ? dy : -dy), 12, viewport.height - 160),
+      };
+      if (layerDragRef.current.layer === "input") setInputPosition(next);
+      if (layerDragRef.current.layer === "index") setIndexPosition(next);
+      if (layerDragRef.current.layer === "detail") setDetailPosition(next);
+      return;
+    }
+
+    const imageDragging = dragImageRef.current;
+    if (imageDragging) {
+      const point = worldFromPointer(pending.clientX, pending.clientY);
+      imageDragging.lastX = point.x;
+      imageDragging.lastY = point.y;
+      imageDragging.moved = true;
+      scheduleImagePositionUpdate(imageDragging.linkedNodeId, imageDragging.id, point.x, point.y);
+      return;
+    }
+
+    const linkDragging = dragLinkRef.current;
+    if (linkDragging) {
+      const point = worldFromPointer(pending.clientX, pending.clientY);
+      linkDragging.lastX = point.x;
+      linkDragging.lastY = point.y;
+      linkDragging.moved = true;
+      scheduleLinkPositionUpdate(linkDragging.linkedNodeId, linkDragging.id, point.x, point.y);
+      return;
+    }
+
+    const dragging = dragNodeRef.current;
+    if (dragging) {
+      const point = worldFromPointer(pending.clientX, pending.clientY);
+      const dx = point.x - dragging.lastX;
+      const dy = point.y - dragging.lastY;
+      const ids = dragging.ids ?? (dragging.structure ? descendantIds(dragging.id) : new Set([dragging.id]));
+      dragging.lastX = point.x;
+      dragging.lastY = point.y;
+      dragging.moved = true;
+      groupImageDragRef.current = {
+        ids,
+        dx: (groupImageDragRef.current?.dx ?? 0) + dx,
+        dy: (groupImageDragRef.current?.dy ?? 0) + dy,
+      };
+      return;
+    }
+
+    if (!panRef.current.active) return;
+    const dx = pending.clientX - panRef.current.x;
+    const dy = pending.clientY - panRef.current.y;
+    const next = {
+      ...targetCameraRef.current,
+      x: targetCameraRef.current.x - dx / cameraRef.current.zoom,
+      y: targetCameraRef.current.y - dy / cameraRef.current.zoom,
+    };
+    targetCameraRef.current = next;
+    cameraRef.current = next;
+    panRef.current = {
+      active: true,
+      moved: panRef.current.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2,
+      x: pending.clientX,
+      y: pending.clientY,
+    };
   };
 
   const scheduleImagePositionUpdate = (linkedNodeId: string, imageId: string, x: number, y: number) => {
@@ -146,82 +224,17 @@ export function useGestures({
 
   const panMove = (event: ReactPointerEvent<HTMLElement>) => {
     scheduleGaze(event);
-
-    if (updateSelectionDrag(event.clientX, event.clientY)) return;
-
-    if (layerDragRef.current) {
-      const dx = event.clientX - layerDragRef.current.x;
-      const dy = event.clientY - layerDragRef.current.y;
-      const next = {
-        x: clamp(layerDragRef.current.startX + (layerDragRef.current.layer === "detail" ? -dx : dx), 12, viewport.width - 220),
-        y: clamp(layerDragRef.current.startY + (layerDragRef.current.layer === "input" ? dy : -dy), 12, viewport.height - 160),
-      };
-      if (layerDragRef.current.layer === "input") setInputPosition(next);
-      if (layerDragRef.current.layer === "index") setIndexPosition(next);
-      if (layerDragRef.current.layer === "detail") setDetailPosition(next);
-      return;
-    }
-
-    const imageDragging = dragImageRef.current;
-    if (imageDragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const dx = point.x - imageDragging.lastX;
-      const dy = point.y - imageDragging.lastY;
-      imageDragging.lastX = point.x;
-      imageDragging.lastY = point.y;
-      imageDragging.moved = true;
-      scheduleImagePositionUpdate(imageDragging.linkedNodeId, imageDragging.id, point.x, point.y);
-      return;
-    }
-
-    const linkDragging = dragLinkRef.current;
-    if (linkDragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const dx = point.x - linkDragging.lastX;
-      const dy = point.y - linkDragging.lastY;
-      linkDragging.lastX = point.x;
-      linkDragging.lastY = point.y;
-      linkDragging.moved = true;
-      scheduleLinkPositionUpdate(linkDragging.linkedNodeId, linkDragging.id, point.x, point.y);
-      return;
-    }
-
-    const dragging = dragNodeRef.current;
-    if (dragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const dx = point.x - dragging.lastX;
-      const dy = point.y - dragging.lastY;
-      const ids = dragging.ids ?? (dragging.structure ? descendantIds(dragging.id) : new Set([dragging.id]));
-      dragging.lastX = point.x;
-      dragging.lastY = point.y;
-      dragging.moved = true;
-      groupImageDragRef.current = {
-        ids,
-        dx: (groupImageDragRef.current?.dx ?? 0) + dx,
-        dy: (groupImageDragRef.current?.dy ?? 0) + dy,
-      };
-      return;
-    }
-
-    if (!panRef.current.active) return;
-    const dx = event.clientX - panRef.current.x;
-    const dy = event.clientY - panRef.current.y;
-    const next = {
-      ...targetCameraRef.current,
-      x: targetCameraRef.current.x - dx / cameraRef.current.zoom,
-      y: targetCameraRef.current.y - dy / cameraRef.current.zoom,
-    };
-    targetCameraRef.current = next;
-    cameraRef.current = next;
-    panRef.current = {
-      active: true,
-      moved: panRef.current.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2,
-      x: event.clientX,
-      y: event.clientY,
-    };
+    pendingPointerMoveRef.current = { clientX: event.clientX, clientY: event.clientY };
+    if (pendingPointerMoveFrameRef.current !== null) return;
+    pendingPointerMoveFrameRef.current = window.requestAnimationFrame(flushPendingPointerMove);
   };
 
   const panEnd = () => {
+    if (pendingPointerMoveFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingPointerMoveFrameRef.current);
+      pendingPointerMoveFrameRef.current = null;
+      pendingPointerMoveRef.current = null;
+    }
     if (finishSelectionDrag()) {
       lastDragMovedRef.current = true;
       return;
