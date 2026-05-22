@@ -10,6 +10,7 @@ import {
   rebuildEdgesFromHierarchy,
   sanitizeGraphEdges,
 } from "../lib/mind/edgeEngine";
+import { edgeStrokeColor, edgeStrokeWidth, isHierarchyEdge, isSemanticEdge } from "../lib/mind/edgeRender";
 import type { GraphEdge } from "../lib/mind/types";
 import { getEdgeOpacity, getVisibleEdges } from "../lib/mind/visibilityEngine";
 
@@ -3728,6 +3729,13 @@ export default function Home() {
             <stop offset="50%" stopColor="rgba(0, 0, 0, 0.2)" />
             <stop offset="100%" stopColor="rgba(0, 0, 0, 0.04)" />
           </linearGradient>
+          <filter id="semantic-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         {visibleGraphEdges.map((edge) => {
           const source = simNodes.find((node) => node.id === edge.source);
@@ -3742,6 +3750,13 @@ export default function Home() {
             innerSpaceNodeIds: currentPocketId ? innerSpaceNodeIds : undefined,
           });
           const project = source.level === "project" ? source.project : target.project;
+          const baseColor = projectLineColor(project, edge.id, 1);
+          const stroke = edgeStrokeColor(edge, opacity, baseColor);
+          const strokeWidth = edgeStrokeWidth(edge, Boolean(active), edgeLineWidth(source, target, Boolean(active)));
+          const filter = isSemanticEdge(edge) ? "url(#semantic-glow)" : undefined;
+          const className = [`thought-link`, active ? "thought-link-active" : null, isHierarchyEdge(edge) ? "thought-link--hierarchy" : null, isSemanticEdge(edge) ? "thought-link--semantic" : null]
+            .filter(Boolean)
+            .join(" ");
 
           return (
             <line
@@ -3750,10 +3765,11 @@ export default function Home() {
               x2={targetScreen.x}
               y1={sourceScreen.y}
               y2={targetScreen.y}
-              className={active ? "thought-link thought-link-active" : "thought-link"}
-              opacity={opacity}
-              stroke={projectLineColor(project, edge.id, 1)}
-              strokeWidth={edgeLineWidth(source, target, Boolean(active))}
+              className={className}
+              opacity={active ? Math.max(opacity, 0.75) : opacity}
+              stroke={stroke}
+              strokeWidth={strokeWidth}
+              filter={filter}
             />
           );
         })}

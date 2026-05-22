@@ -123,8 +123,16 @@ button,
   transition: opacity 240ms ease, stroke-width 240ms ease, stroke 240ms ease;
 }
 
+.thought-link--hierarchy {
+  stroke-linejoin: round;
+}
+
+.thought-link--semantic {
+  filter: drop-shadow(0 0 12px rgba(88, 168, 255, 0.85));
+}
+
 .thought-link-active {
-  filter: none;
+  opacity: 1;
 }
 
 .gaze-toggle {
