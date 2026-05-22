@@ -13,17 +13,6 @@ type SemanticEdgeOptions = {
   maxEdges?: number;
 };
 
-type EdgeVisibilityMode =
-  | "whiteHall"
-  | "selected"
-  | "innerSpace"
-  | {
-      selectedNodeId?: string | null;
-      innerSpaceNodeIds?: Set<string>;
-      maxVisibleSemanticEdges?: number;
-      minSemanticScore?: number;
-    };
-
 function edgeKey(source: string, target: string) {
   return [source, target].sort().join("-");
 }
@@ -130,28 +119,4 @@ export function mergeGraphEdges(baseEdges: GraphEdge[], generatedEdges: GraphEdg
   }
 
   return [...merged.values()];
-}
-
-export function getVisibleEdges(edges: GraphEdge[], mode: EdgeVisibilityMode = "whiteHall") {
-  const hierarchyEdges = edges.filter((edge) => edge.kind === "hierarchy" || !edge.generated);
-  if (mode === "whiteHall") return hierarchyEdges;
-
-  const selectedNodeId = typeof mode === "object" ? mode.selectedNodeId : null;
-  const innerSpaceNodeIds = typeof mode === "object" ? mode.innerSpaceNodeIds : undefined;
-  const maxVisibleSemanticEdges = typeof mode === "object" ? mode.maxVisibleSemanticEdges ?? 6 : mode === "innerSpace" ? 12 : 6;
-  const minSemanticScore = typeof mode === "object" ? mode.minSemanticScore ?? 0.68 : mode === "innerSpace" ? 0.52 : 0.68;
-
-  if (!selectedNodeId && !innerSpaceNodeIds?.size) return hierarchyEdges;
-
-  const semanticEdges = edges
-    .filter((edge) => {
-      if (!edge.generated) return false;
-      if (edge.score < minSemanticScore) return false;
-      if (innerSpaceNodeIds?.size) return innerSpaceNodeIds.has(edge.source) || innerSpaceNodeIds.has(edge.target);
-      return edge.source === selectedNodeId || edge.target === selectedNodeId;
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, maxVisibleSemanticEdges);
-
-  return mergeGraphEdges(hierarchyEdges, semanticEdges);
 }

@@ -2,14 +2,16 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useGestures } from "../hooks/useGestures";
+import { useSelection } from "../hooks/useSelection";
 import {
   generateSemanticEdges,
-  getVisibleEdges,
   mergeGraphEdges,
   rebuildEdgesFromHierarchy,
   sanitizeGraphEdges,
 } from "../lib/mind/edgeEngine";
 import type { GraphEdge } from "../lib/mind/types";
+import { getEdgeOpacity, getVisibleEdges } from "../lib/mind/visibilityEngine";
 
 type NodeLevel = "project" | "category" | "detail";
 type InputMode = "memo" | "question";
@@ -1690,7 +1692,6 @@ export default function Home() {
   const [memosLoaded, setMemosLoaded] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null);
@@ -1730,20 +1731,12 @@ export default function Home() {
   const [archiveLoaded, setArchiveLoaded] = useState(false);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
-  const [selectionRect, setSelectionRect] = useState<SelectionRect | null>(null);
   const spaceRef = useRef<HTMLDivElement | null>(null);
   const simRef = useRef<SimNode[]>([]);
   const cameraRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
   const targetCameraRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
-  const dragNodeRef = useRef<{ id: string; moved: boolean; structure: boolean; lastX: number; lastY: number; ids?: Set<string> } | null>(null);
-  const dragImageRef = useRef<{ id: string; linkedNodeId: string; moved: boolean; lastX: number; lastY: number } | null>(null);
-  const dragLinkRef = useRef<{ id: string; linkedNodeId: string; moved: boolean; lastX: number; lastY: number } | null>(null);
-  const groupImageDragRef = useRef<{ ids: Set<string>; dx: number; dy: number } | null>(null);
   const historyTimerRef = useRef<number | null>(null);
   const layoutStorageTimerRef = useRef<number | null>(null);
-  const mediaPositionFrameRef = useRef<number | null>(null);
-  const pendingImagePositionRef = useRef<{ linkedNodeId: string; imageId: string; x: number; y: number } | null>(null);
-  const pendingLinkPositionRef = useRef<{ linkedNodeId: string; linkId: string; x: number; y: number } | null>(null);
   const historySeededRef = useRef(false);
   const skipHistoryRef = useRef(false);
   const lastHistorySignatureRef = useRef("");
@@ -1755,19 +1748,6 @@ export default function Home() {
   const autoPanBlockedRef = useRef(false);
   const gazePanEnabledRef = useRef(false);
   const pointerOverUiRef = useRef(false);
-  const lastDragMovedRef = useRef(false);
-  const suppressNextCanvasClickRef = useRef(false);
-  const selectionRectRef = useRef<SelectionRect | null>(null);
-  const selectionBaseIdsRef = useRef<Set<string>>(new Set());
-  const selectedNodeIdsRef = useRef<string[]>([]);
-  const panRef = useRef<{ active: boolean; moved: boolean; x: number; y: number }>({ active: false, moved: false, x: 0, y: 0 });
-  const layerDragRef = useRef<{
-    layer: LayerName;
-    x: number;
-    y: number;
-    startX: number;
-    startY: number;
-  } | null>(null);
 
   const { nodes, edges, projects } = useMemo(() => buildThoughtGraph(memos), [memos]);
   const generatedEdges = useMemo(() => generateSemanticEdges(nodes, { maxEdges: 80, minScore: 0.36 }), [nodes]);
@@ -1796,10 +1776,6 @@ export default function Home() {
   useEffect(() => {
     viewportRef.current = viewport;
   }, [viewport]);
-
-  useEffect(() => {
-    selectedNodeIdsRef.current = selectedNodeIds;
-  }, [selectedNodeIds]);
 
   useEffect(() => {
     gazePanEnabledRef.current = isGazePanEnabled;
@@ -1833,8 +1809,35 @@ export default function Home() {
         })),
     [nodeOverrides, simNodes],
   );
+  const {
+    selectedNodeIds,
+    setSelectedNodeIds,
+    selectedNodeIdsRef,
+    selectedNodeIdSet,
+    selectionRect,
+    selectionRectRef,
+    selectionBounds,
+    toggleNodeSelection,
+    beginSelectionDrag,
+    startSelectionDrag,
+    updateSelectionDrag,
+    finishSelectionDrag,
+    hitTestVisibleNode,
+    pointerInSpace,
+    suppressNextCanvasClickRef,
+  } = useSelection({
+    visibleNodes,
+    camera,
+    viewport,
+    spaceRef,
+    addChildNode,
+    setSelectedNodeId,
+    setSelectedImageId,
+    setSelectedLinkId,
+    setSelectedMemoId,
+    isInteractiveTarget,
+  });
   const selectedNode = useMemo(() => visibleNodes.find((node) => node.id === selectedNodeId) ?? null, [selectedNodeId, visibleNodes]);
-  const selectedNodeIdSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds]);
   const currentPocketNode = useMemo(
     () => visibleNodes.find((node) => node.id === currentPocketId) ?? null,
     [currentPocketId, visibleNodes],
@@ -1880,8 +1883,11 @@ export default function Home() {
   const visibleGraphEdges = useMemo(
     () =>
       getVisibleEdges(graphEdges, {
-        selectedNodeId,
+        focusedNodeId: selectedNodeId,
         innerSpaceNodeIds: currentPocketId ? innerSpaceNodeIds : undefined,
+        mode: currentPocketId ? "innerSpace" : selectedNodeId ? "focused" : "whiteHall",
+        hopDepth: currentPocketId ? 2 : 1,
+        maxVisibleEdgesPerNode: currentPocketId ? 5 : 4,
         maxVisibleSemanticEdges: currentPocketId ? 12 : 6,
         minSemanticScore: currentPocketId ? 0.52 : 0.68,
       }),
@@ -1973,6 +1979,42 @@ export default function Home() {
       ),
     [nodeOverrides, visibleNodes],
   );
+  const {
+    panStart,
+    panMove,
+    panEnd,
+    zoomSpace,
+    lastDragMovedRef,
+    dragNodeRef,
+    dragImageRef,
+    dragLinkRef,
+    groupImageDragRef,
+    layerDragRef,
+    panRef,
+    pendingImagePositionRef,
+    pendingLinkPositionRef,
+  } = useGestures({
+    viewport,
+    cameraRef,
+    targetCameraRef,
+    scheduleGaze,
+    startSelectionDrag,
+    updateSelectionDrag,
+    finishSelectionDrag,
+    selectionRect,
+    worldFromPointer,
+    imageNodes,
+    linkNodes,
+    persistNodePositions,
+    moveImagesForNodes,
+    descendantIds,
+    isStructureEdit,
+    setInputPosition,
+    setIndexPosition,
+    setDetailPosition,
+    updateNodeImagePosition,
+    updateNodeLinkPosition,
+  });
   const galleryImages = useMemo(() => {
     if (!previewImage) return [];
     const linkedNodeId = previewImage.linkedNodeId;
@@ -2208,67 +2250,6 @@ export default function Home() {
     return () => window.removeEventListener("paste", onPaste);
   }, [selectedNodeId, simNodes]);
 
-  useEffect(() => {
-    const insideSpace = (clientX: number, clientY: number) => {
-      const rect = spaceRef.current?.getBoundingClientRect();
-      if (!rect) return false;
-      return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
-    };
-    const stopNativeEvent = (event: PointerEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-    };
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0 || !insideSpace(event.clientX, event.clientY) || isInteractiveTarget(event.target)) return;
-      const node = hitTestVisibleNode(event.clientX, event.clientY);
-      console.log("RAW DOCUMENT POINTER DOWN", event.shiftKey, node?.id ?? "space", event.target);
-      if (event.shiftKey) {
-        suppressNextCanvasClickRef.current = true;
-        if (node) {
-          console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
-          toggleNodeSelection(node.id);
-        } else {
-          beginSelectionDrag(event.clientX, event.clientY);
-        }
-        stopNativeEvent(event);
-        return;
-      }
-      if ((event.metaKey || event.ctrlKey) && node) {
-        console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
-        addChildNode(node);
-        stopNativeEvent(event);
-      }
-    };
-    const onPointerMove = (event: PointerEvent) => {
-      if (!selectionRectRef.current) return;
-      updateSelectionDrag(event.clientX, event.clientY);
-      stopNativeEvent(event);
-    };
-    const onPointerUp = (event: PointerEvent) => {
-      if (selectionRectRef.current) {
-        finishSelectionDrag();
-        stopNativeEvent(event);
-        return;
-      }
-      if ((event.shiftKey || suppressNextCanvasClickRef.current) && insideSpace(event.clientX, event.clientY)) {
-        console.log("selection persisted", selectedNodeIdsRef.current.length);
-        stopNativeEvent(event);
-      }
-    };
-
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("pointermove", onPointerMove, true);
-    document.addEventListener("pointerup", onPointerUp, true);
-    document.addEventListener("pointercancel", onPointerUp, true);
-
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("pointermove", onPointerMove, true);
-      document.removeEventListener("pointerup", onPointerUp, true);
-      document.removeEventListener("pointercancel", onPointerUp, true);
-    };
-  }, [camera, selectedNodeIds, visibleNodes, viewport]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -2649,24 +2630,6 @@ export default function Home() {
     };
   }
 
-  function toggleNodeSelection(id: string) {
-    console.log("shift node click", id);
-    setSelectedNodeIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      const nextIds = [...next];
-      selectedNodeIdsRef.current = nextIds;
-      console.log("selectedNodeIds", nextIds);
-      console.log("selection persisted", nextIds.length);
-      return nextIds;
-    });
-    setSelectedNodeId(null);
-    setSelectedImageId(null);
-    setSelectedLinkId(null);
-    setSelectedMemoId(null);
-  }
-
   function enterThoughtPocket(node: SimNode) {
     setCurrentPocketId(node.id);
     focusNode(node);
@@ -2798,103 +2761,6 @@ export default function Home() {
       x: (image.x - camera.x) * camera.zoom + viewport.width / 2,
       y: (image.y - camera.y) * camera.zoom + viewport.height / 2,
     };
-  }
-
-  function pointerInSpace(clientX: number, clientY: number) {
-    const rect = spaceRef.current?.getBoundingClientRect();
-    return {
-      x: clientX - (rect?.left ?? 0),
-      y: clientY - (rect?.top ?? 0),
-    };
-  }
-
-  function selectionBounds(rect: SelectionRect) {
-    const left = Math.min(rect.startX, rect.currentX);
-    const right = Math.max(rect.startX, rect.currentX);
-    const top = Math.min(rect.startY, rect.currentY);
-    const bottom = Math.max(rect.startY, rect.currentY);
-    return { left, right, top, bottom };
-  }
-
-  function nodeIdsInSelection(rect: SelectionRect) {
-    const bounds = selectionBounds(rect);
-    return visibleNodes
-      .filter((node) => {
-        const position = screenPosition(node);
-        return position.x >= bounds.left && position.x <= bounds.right && position.y >= bounds.top && position.y <= bounds.bottom;
-      })
-      .map((node) => node.id);
-  }
-
-  function hitTestVisibleNode(clientX: number, clientY: number) {
-    const point = pointerInSpace(clientX, clientY);
-    return visibleNodes
-      .map((node) => {
-        const position = screenPosition(node);
-        const radius = node.level === "project" ? 120 : node.level === "category" ? 82 : 64;
-        const distance = Math.hypot(position.x - point.x, position.y - point.y);
-        return { node, distance, radius };
-      })
-      .filter((item) => item.distance <= item.radius)
-      .sort((a, b) => a.distance - b.distance)[0]?.node;
-  }
-
-  function beginSelectionDrag(clientX: number, clientY: number) {
-    const point = pointerInSpace(clientX, clientY);
-    const next: SelectionRect = {
-      active: true,
-      startX: point.x,
-      startY: point.y,
-      currentX: point.x,
-      currentY: point.y,
-      additive: true,
-    };
-    selectionBaseIdsRef.current = new Set(selectedNodeIds);
-    selectionRectRef.current = next;
-    setSelectionRect(next);
-    console.log("selection start");
-    setSelectedNodeId(null);
-    setSelectedImageId(null);
-    setSelectedLinkId(null);
-    setSelectedMemoId(null);
-    return true;
-  }
-
-  function startSelectionDrag(event: React.PointerEvent<HTMLElement>) {
-    if (event.button !== 0) return false;
-    beginSelectionDrag(event.clientX, event.clientY);
-    event.currentTarget.setPointerCapture(event.pointerId);
-    return true;
-  }
-
-  function updateSelectionDrag(clientX: number, clientY: number) {
-    const current = selectionRectRef.current;
-    if (!current?.active) return false;
-    const point = pointerInSpace(clientX, clientY);
-    const next = { ...current, currentX: point.x, currentY: point.y };
-    selectionRectRef.current = next;
-    setSelectionRect(next);
-    const ids = new Set(selectionBaseIdsRef.current);
-    nodeIdsInSelection(next).forEach((id) => ids.add(id));
-    const nextIds = [...ids];
-    console.log("selection move", nextIds);
-    setSelectedNodeIds(nextIds);
-    return true;
-  }
-
-  function finishSelectionDrag() {
-    if (!selectionRectRef.current) return false;
-    const ids = new Set(selectionBaseIdsRef.current);
-    nodeIdsInSelection(selectionRectRef.current).forEach((id) => ids.add(id));
-    const selectedIds = [...ids];
-    selectedNodeIdsRef.current = selectedIds;
-    console.log("selection end", selectedIds);
-    setSelectedNodeIds(selectedIds);
-    selectionRectRef.current = null;
-    selectionBaseIdsRef.current = new Set();
-    setSelectionRect(null);
-    console.log("selection persisted", selectedIds.length);
-    return true;
   }
 
   function currentBoardState(): BoardState {
@@ -3514,33 +3380,6 @@ export default function Home() {
     }));
   }
 
-  function flushPendingMediaPosition() {
-    mediaPositionFrameRef.current = null;
-    const imagePosition = pendingImagePositionRef.current;
-    const linkPosition = pendingLinkPositionRef.current;
-    pendingImagePositionRef.current = null;
-    pendingLinkPositionRef.current = null;
-
-    if (imagePosition) {
-      updateNodeImagePosition(imagePosition.linkedNodeId, imagePosition.imageId, imagePosition.x, imagePosition.y);
-    }
-    if (linkPosition) {
-      updateNodeLinkPosition(linkPosition.linkedNodeId, linkPosition.linkId, linkPosition.x, linkPosition.y);
-    }
-  }
-
-  function scheduleImagePositionUpdate(linkedNodeId: string, imageId: string, x: number, y: number) {
-    pendingImagePositionRef.current = { linkedNodeId, imageId, x, y };
-    if (mediaPositionFrameRef.current !== null) return;
-    mediaPositionFrameRef.current = window.requestAnimationFrame(flushPendingMediaPosition);
-  }
-
-  function scheduleLinkPositionUpdate(linkedNodeId: string, linkId: string, x: number, y: number) {
-    pendingLinkPositionRef.current = { linkedNodeId, linkId, x, y };
-    if (mediaPositionFrameRef.current !== null) return;
-    mediaPositionFrameRef.current = window.requestAnimationFrame(flushPendingMediaPosition);
-  }
-
   function moveImagesForNodes(ids: Set<string>, dx: number, dy: number) {
     setNodeOverrides((current) => {
       let changed = false;
@@ -3602,7 +3441,7 @@ export default function Home() {
     setImageNotice(`"${prompt || nodeId}" 이미지 생성은 다음 단계에서 연결 예정입니다.`);
   }
 
-  function addChildNode(parent: SimNode) {
+  function addChildNode(parent: { id: string; level: NodeLevel; x: number; y: number; memo: { id: string }; color?: string }) {
     const childLevel: NodeLevel = parent.level === "project" ? "category" : "detail";
     const childId = `${parent.memo.id}-manual-${crypto.randomUUID()}`;
     const angle = ((hashString(childId) % 360) / 180) * Math.PI;
@@ -3753,175 +3592,6 @@ export default function Home() {
     setLinkModalNodeId(null);
   }
 
-  function panStart(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.button !== 0) return;
-    if (event.shiftKey) {
-      suppressNextCanvasClickRef.current = true;
-      startSelectionDrag(event);
-      return;
-    }
-    panRef.current = { active: true, moved: false, x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function panMove(event: React.PointerEvent<HTMLElement>) {
-    scheduleGaze(event);
-
-    if (updateSelectionDrag(event.clientX, event.clientY)) return;
-
-    if (layerDragRef.current) {
-      const dx = event.clientX - layerDragRef.current.x;
-      const dy = event.clientY - layerDragRef.current.y;
-      const next = {
-        x: clamp(
-          layerDragRef.current.startX + (layerDragRef.current.layer === "detail" ? -dx : dx),
-          12,
-          viewport.width - 220,
-        ),
-        y: clamp(
-          layerDragRef.current.startY + (layerDragRef.current.layer === "input" ? dy : -dy),
-          12,
-          viewport.height - 160,
-        ),
-      };
-      if (layerDragRef.current.layer === "input") setInputPosition(next);
-      if (layerDragRef.current.layer === "index") setIndexPosition(next);
-      if (layerDragRef.current.layer === "detail") setDetailPosition(next);
-      return;
-    }
-
-    const imageDragging = dragImageRef.current;
-    if (imageDragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const image = imageNodes.find((item) => item.id === imageDragging.id);
-      if (image) {
-        const dx = point.x - imageDragging.lastX;
-        const dy = point.y - imageDragging.lastY;
-        image.x += dx;
-        image.y += dy;
-        imageDragging.lastX = point.x;
-        imageDragging.lastY = point.y;
-        imageDragging.moved = true;
-        scheduleImagePositionUpdate(imageDragging.linkedNodeId, imageDragging.id, image.x, image.y);
-      }
-      return;
-    }
-
-    const linkDragging = dragLinkRef.current;
-    if (linkDragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const link = linkNodes.find((item) => item.id === linkDragging.id);
-      if (link) {
-        const dx = point.x - linkDragging.lastX;
-        const dy = point.y - linkDragging.lastY;
-        link.x += dx;
-        link.y += dy;
-        linkDragging.lastX = point.x;
-        linkDragging.lastY = point.y;
-        linkDragging.moved = true;
-        scheduleLinkPositionUpdate(linkDragging.linkedNodeId, linkDragging.id, link.x, link.y);
-      }
-      return;
-    }
-
-    const dragging = dragNodeRef.current;
-
-    if (dragging) {
-      const point = worldFromPointer(event.clientX, event.clientY);
-      const node = simRef.current.find((item) => item.id === dragging.id);
-      if (node) {
-        const dx = point.x - dragging.lastX;
-        const dy = point.y - dragging.lastY;
-        const ids = dragging.ids ?? (dragging.structure ? descendantIds(dragging.id) : new Set([dragging.id]));
-        for (const moved of simRef.current) {
-          if (!ids.has(moved.id)) continue;
-          moved.x += dx;
-          moved.y += dy;
-          moved.vx = 0;
-          moved.vy = 0;
-          moved.locked = true;
-        }
-        groupImageDragRef.current = {
-          ids,
-          dx: (groupImageDragRef.current?.dx ?? 0) + dx,
-          dy: (groupImageDragRef.current?.dy ?? 0) + dy,
-        };
-        dragging.lastX = point.x;
-        dragging.lastY = point.y;
-        node.vx = 0;
-        node.vy = 0;
-        node.locked = true;
-        dragging.moved = true;
-      }
-      return;
-    }
-
-    if (!panRef.current.active) return;
-    const dx = event.clientX - panRef.current.x;
-    const dy = event.clientY - panRef.current.y;
-    const next = {
-      ...targetCameraRef.current,
-      x: targetCameraRef.current.x - dx / cameraRef.current.zoom,
-      y: targetCameraRef.current.y - dy / cameraRef.current.zoom,
-    };
-
-    targetCameraRef.current = next;
-    cameraRef.current = next;
-    setCamera(next);
-    panRef.current = {
-      active: true,
-      moved: panRef.current.moved || Math.abs(dx) > 2 || Math.abs(dy) > 2,
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function panEnd() {
-    if (finishSelectionDrag()) {
-      lastDragMovedRef.current = true;
-      return;
-    }
-    const wasPanMoved = panRef.current.moved;
-    panRef.current.active = false;
-    panRef.current.moved = false;
-    layerDragRef.current = null;
-    if (dragNodeRef.current) {
-      const ids = dragNodeRef.current.ids ?? (dragNodeRef.current.structure ? descendantIds(dragNodeRef.current.id) : new Set([dragNodeRef.current.id]));
-      for (const node of simRef.current) {
-        if (ids.has(node.id)) {
-          node.locked = false;
-          node.fixed = true;
-        }
-      }
-      if (dragNodeRef.current.moved) persistNodePositions(ids);
-      if (dragNodeRef.current.moved && groupImageDragRef.current) {
-        moveImagesForNodes(groupImageDragRef.current.ids, groupImageDragRef.current.dx, groupImageDragRef.current.dy);
-      }
-      lastDragMovedRef.current = dragNodeRef.current.moved;
-    }
-    dragNodeRef.current = null;
-    groupImageDragRef.current = null;
-    if (dragImageRef.current) {
-      flushPendingMediaPosition();
-      lastDragMovedRef.current = dragImageRef.current.moved;
-    }
-    dragImageRef.current = null;
-    if (dragLinkRef.current) {
-      flushPendingMediaPosition();
-      lastDragMovedRef.current = dragLinkRef.current.moved;
-    }
-    dragLinkRef.current = null;
-    if (!dragNodeRef.current && !dragImageRef.current && !dragLinkRef.current && wasPanMoved) {
-      lastDragMovedRef.current = true;
-    }
-  }
-
-  function zoomSpace(event: React.WheelEvent<HTMLDivElement>) {
-    event.preventDefault();
-    const nextZoom = clamp(targetCameraRef.current.zoom * (event.deltaY > 0 ? 0.92 : 1.08), 0.45, 2.25);
-    targetCameraRef.current = { ...targetCameraRef.current, zoom: nextZoom };
-  }
-
   function stopFloatingWheel(event: React.WheelEvent<HTMLElement>) {
     event.stopPropagation();
   }
@@ -4067,8 +3737,10 @@ export default function Home() {
           const sourceScreen = screenPosition(source);
           const targetScreen = screenPosition(target);
           const active = selectedNodeId && (edge.source === selectedNodeId || edge.target === selectedNodeId);
-          const sameActiveProject = selectedNode ? source.project === selectedNode.project || target.project === selectedNode.project : true;
-          const opacity = active ? 0.92 : sameActiveProject ? 0.62 : 0.24;
+          const opacity = getEdgeOpacity(edge, {
+            focusedNodeId: selectedNodeId,
+            innerSpaceNodeIds: currentPocketId ? innerSpaceNodeIds : undefined,
+          });
           const project = source.level === "project" ? source.project : target.project;
 
           return (

@@ -6,7 +6,8 @@ export type GraphEdgeKind =
   | "action"
   | "memory"
   | "timeline"
-  | "resource";
+  | "resource"
+  | "temporary";
 
 export type GraphEdge = {
   id: string;
