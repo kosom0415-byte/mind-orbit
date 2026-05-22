@@ -16,6 +16,7 @@ type SelectionRect = {
   startY: number;
   currentX: number;
   currentY: number;
+  additive: boolean;
 };
 
 type HUDLayerProps = {
@@ -87,7 +88,7 @@ function HUDLayer({
         className={`gaze-toggle ui-layer ${isGazePanEnabled ? "gaze-toggle-on" : ""}`}
         onClick={(event) => {
           event.stopPropagation();
-          setIsGazePanEnabled((enabled) => !enabled);
+          setIsGazePanEnabled(!isGazePanEnabled);
         }}
         onPointerDown={(event) => event.stopPropagation()}
         type="button"

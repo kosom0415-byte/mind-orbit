@@ -47,6 +47,7 @@ type LinkNode = {
   linkedNodeId: string;
   linkedLabel: string;
   level: string;
+  source: "youtube" | "instagram" | "web";
   x: number;
   y: number;
   z?: number;
@@ -67,6 +68,9 @@ type NodeLayerProps = {
   selectedNodeId: string | null;
   selectedImageId: string | null;
   selectedLinkId: string | null;
+  hoveredNodeId: string | null;
+  hoveredImageId: string | null;
+  hoveredLinkId: string | null;
   selectedNodeIdSet: Set<string>;
   selectedNodeIds: string[];
   selectedAncestorTrail: string[];
@@ -83,14 +87,14 @@ type NodeLayerProps = {
   selectedNode: SimNode | null;
   worldFromPointer: (clientX: number, clientY: number) => Position;
   imageScreenPosition: (image: { x: number; y: number }) => Position;
-  focusNode: (node: SimNode) => void;
-  enterThoughtPocket: (node: SimNode) => void;
+  focusNode: (node: any) => void;
+  enterThoughtPocket: (node: any) => void;
   updateNodeLabel: (id: string, label: string) => void;
   updateNodeColor: (id: string, color: string) => void;
-  addChildNode: (node: SimNode) => void;
+  addChildNode: (node: any) => void;
   deleteNode: (id: string) => void;
-  focusImage: (image: ImageNode) => void;
-  focusLink: (link: LinkNode) => void;
+  focusImage: (image: any) => void;
+  focusLink: (link: any) => void;
   setHoveredNodeId: (id: string | null) => void;
   setHoveredImageId: (id: string | null) => void;
   setHoveredLinkId: (id: string | null) => void;
@@ -100,13 +104,10 @@ type NodeLayerProps = {
   dragNodeRef: React.MutableRefObject<any>;
   dragImageRef: React.MutableRefObject<any>;
   dragLinkRef: React.MutableRefObject<any>;
-  dragNodeRef: React.MutableRefObject<any>;
-  dragImageRef: React.MutableRefObject<any>;
-  dragLinkRef: React.MutableRefObject<any>;
   updateSelectionDrag: (clientX: number, clientY: number) => boolean;
   enterInteractionSafeZone: () => void;
   leaveInteractionSafeZone: () => void;
-  nodeClass: (level: string, selected: boolean, dimmed: boolean) => string;
+  nodeClass: (level: any, selected: boolean, dimmed: boolean) => string;
   colorClass: (color?: string) => string;
 };
 
@@ -117,6 +118,9 @@ function NodeLayer({
   selectedNodeId,
   selectedImageId,
   selectedLinkId,
+  hoveredNodeId,
+  hoveredImageId,
+  hoveredLinkId,
   selectedNodeIdSet,
   selectedNodeIds,
   selectedAncestorTrail,
@@ -165,7 +169,7 @@ function NodeLayer({
         const distance = Math.hypot(node.x - camera.x, node.y - camera.y);
         const selected = selectedNodeId === node.id;
         const multiSelected = selectedNodeIdSet.has(node.id);
-        const hovered = selectedNodeId === node.id ? false : false;
+        const hovered = hoveredNodeId === node.id;
         const innerDimmed = Boolean(currentPocketId && !innerSpaceNodeIds.has(node.id));
         const dimmed = currentPocketId
           ? innerDimmed && !multiSelected
@@ -255,7 +259,7 @@ function NodeLayer({
               if (!isPerformanceMode) setHoveredNodeId(node.id);
             }}
             onPointerLeave={() => {
-              if (!isPerformanceMode) setHoveredNodeId((current) => (current === node.id ? null : current));
+              if (!isPerformanceMode) setHoveredNodeId(null);
             }}
             onPointerDown={(event) => {
               event.stopPropagation();

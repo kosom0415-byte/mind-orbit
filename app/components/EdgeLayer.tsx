@@ -56,7 +56,7 @@ type EdgeLayerProps = {
   innerSpaceNodeIds: Set<string>;
   projectLineColor: (project: string, seed: string, opacity: number) => string;
   imageScreenPosition: (image: { x: number; y: number }) => Position;
-  edgeLineWidth: (source: { level: string }, target: { level: string }, active: boolean) => number;
+  edgeLineWidth: (source: any, target: any, active: boolean) => number;
   attachmentLineWidth: (active: boolean) => number;
   getEdgeOpacity: (
     edge: GraphEdge,

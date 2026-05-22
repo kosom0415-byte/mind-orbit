@@ -19,7 +19,6 @@ import HUDLayer from "./components/HUDLayer";
 import MinimapLayer from "./components/MinimapLayer";
 import NodeLayer from "./components/NodeLayer";
 import { getEdgeOpacity, getVisibleEdges } from "../lib/mind/visibilityEngine";
-import EmptyState from "./components/EmptyState";
 
 type NodeLevel = "project" | "category" | "detail";
 type InputMode = "memo" | "question";
@@ -3796,6 +3795,9 @@ export default function Home() {
         selectedNodeId={selectedNodeId}
         selectedImageId={selectedImageId}
         selectedLinkId={selectedLinkId}
+        hoveredNodeId={hoveredNodeId}
+        hoveredImageId={hoveredImageId}
+        hoveredLinkId={hoveredLinkId}
         selectedNodeIdSet={selectedNodeIdSet}
         selectedNodeIds={selectedNodeIds}
         selectedAncestorTrail={selectedAncestorTrail}
