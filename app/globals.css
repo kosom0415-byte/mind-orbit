@@ -1121,6 +1121,14 @@ button,
   font-weight: 580;
 }
 
+.graph-debug-metrics {
+  flex: 0 0 auto;
+  color: rgba(0, 0, 0, 0.46);
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .share-board-label {
   flex: 0 0 auto;
   color: rgba(0, 0, 0, 0.42);

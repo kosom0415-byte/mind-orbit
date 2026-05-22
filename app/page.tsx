@@ -2,6 +2,14 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  generateSemanticEdges,
+  getVisibleEdges,
+  mergeGraphEdges,
+  rebuildEdgesFromHierarchy,
+  sanitizeGraphEdges,
+} from "../lib/mind/edgeEngine";
+import type { GraphEdge } from "../lib/mind/types";
 
 type NodeLevel = "project" | "category" | "detail";
 type InputMode = "memo" | "question";
@@ -98,13 +106,6 @@ type ThoughtNode = {
   tokens: string[];
   color?: string;
   thoughtPocket?: ThoughtPocket;
-};
-
-type GraphEdge = {
-  id: string;
-  source: string;
-  target: string;
-  strength: number;
 };
 
 type SimNode = ThoughtNode & {
@@ -721,61 +722,12 @@ function extractStructure(memo: MemoItem, memoIndex: number) {
   };
 }
 
-function similarity(a: string[], b: string[]) {
-  if (a.length === 0 || b.length === 0) return 0;
-  const setA = new Set(a);
-  const setB = new Set(b);
-  let shared = 0;
-
-  for (const token of setA) {
-    if (setB.has(token)) shared += 1;
-  }
-
-  return shared / Math.max(setA.size, setB.size);
-}
-
 function projectAnchor(index: number, total: number) {
   const spacing = 720;
   const start = -((total - 1) * spacing) / 2;
   const y = index % 2 === 0 ? -80 : 120;
 
   return { x: start + index * spacing, y };
-}
-
-function sanitizeGraphEdges(edges: GraphEdge[], nodeIds: Set<string>) {
-  const seen = new Set<string>();
-  const sanitized: GraphEdge[] = [];
-
-  for (const edge of edges) {
-    if (!edge.source || !edge.target) continue;
-    if (edge.source === edge.target) continue;
-    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) continue;
-
-    const key = [edge.source, edge.target].sort().join("-");
-    if (seen.has(key)) continue;
-    seen.add(key);
-    sanitized.push(edge);
-  }
-
-  return sanitized;
-}
-
-function rebuildEdgesFromHierarchy(nodes: Array<ThoughtNode | SimNode>) {
-  const nodeIds = new Set(nodes.map((node) => node.id));
-  const rebuilt = new Map<string, GraphEdge>();
-
-  for (const node of nodes) {
-    if (!node.parentId || !nodeIds.has(node.parentId)) continue;
-    const id = `${node.parentId}-${node.id}`;
-    rebuilt.set(id, {
-      id,
-      source: node.parentId,
-      target: node.id,
-      strength: node.level === "detail" ? 2.2 : 3.2,
-    });
-  }
-
-  return [...rebuilt.values()];
 }
 
 function buildThoughtGraph(memos: MemoItem[]) {
@@ -833,6 +785,10 @@ function buildThoughtGraph(memos: MemoItem[]) {
         source: projectNode.id,
         target: categoryId,
         strength: 3.2,
+        kind: "hierarchy",
+        score: 1,
+        reasons: ["project to category"],
+        generated: false,
       });
       if (previousCategoryId !== projectNode.id) {
         edges.set(`${previousCategoryId}-${categoryId}-flow`, {
@@ -840,6 +796,10 @@ function buildThoughtGraph(memos: MemoItem[]) {
           source: previousCategoryId,
           target: categoryId,
           strength: 2.8,
+          kind: "hierarchy",
+          score: 0.88,
+          reasons: ["category flow"],
+          generated: false,
         });
       }
       previousCategoryId = categoryId;
@@ -866,6 +826,10 @@ function buildThoughtGraph(memos: MemoItem[]) {
           source: categoryId,
           target: detailId,
           strength: 2.2,
+          kind: "hierarchy",
+          score: 1,
+          reasons: ["category to detail"],
+          generated: false,
         });
         if (previousFlowId !== categoryId) {
           edges.set(`${previousFlowId}-${detailId}-flow`, {
@@ -873,6 +837,10 @@ function buildThoughtGraph(memos: MemoItem[]) {
             source: previousFlowId,
             target: detailId,
             strength: 2.4,
+            kind: "hierarchy",
+            score: 0.75,
+            reasons: ["detail flow"],
+            generated: false,
           });
         }
         previousFlowId = detailId;
@@ -902,24 +870,10 @@ function buildThoughtGraph(memos: MemoItem[]) {
         source: parent.id,
         target: manual.id,
         strength: 2.5,
-      });
-    }
-  }
-
-  for (let i = 0; i < nodes.length; i += 1) {
-    for (let j = i + 1; j < nodes.length; j += 1) {
-      const a = nodes[i];
-      const b = nodes[j];
-      if (a.parentId === b.id || b.parentId === a.id || a.parentId === b.parentId) continue;
-
-      const score = similarity(a.tokens, b.tokens);
-      if (score < 0.42) continue;
-
-      edges.set(`${a.id}-${b.id}`, {
-        id: `${a.id}-${b.id}`,
-        source: a.id,
-        target: b.id,
-        strength: 1.2 + score * 1.7,
+        kind: "hierarchy",
+        score: 1,
+        reasons: ["manual child"],
+        generated: false,
       });
     }
   }
@@ -1816,7 +1770,11 @@ export default function Home() {
   } | null>(null);
 
   const { nodes, edges, projects } = useMemo(() => buildThoughtGraph(memos), [memos]);
-  const graphEdges = repairedEdges ?? edges;
+  const generatedEdges = useMemo(() => generateSemanticEdges(nodes, { maxEdges: 80, minScore: 0.36 }), [nodes]);
+  const graphEdges = useMemo(
+    () => mergeGraphEdges(repairedEdges ?? edges, generatedEdges),
+    [edges, generatedEdges, repairedEdges],
+  );
   const modeLabel = currentPocketId ? "Inner Space" : editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
   const uiLayerEvents = {
     onPointerEnter: () => {
@@ -1919,6 +1877,16 @@ export default function Home() {
 
     return ids;
   }, [currentPocketNode, visibleNodes]);
+  const visibleGraphEdges = useMemo(
+    () =>
+      getVisibleEdges(graphEdges, {
+        selectedNodeId,
+        innerSpaceNodeIds: currentPocketId ? innerSpaceNodeIds : undefined,
+        maxVisibleSemanticEdges: currentPocketId ? 12 : 6,
+        minSemanticScore: currentPocketId ? 0.52 : 0.68,
+      }),
+    [currentPocketId, graphEdges, innerSpaceNodeIds, selectedNodeId],
+  );
   const selectedMemo = useMemo(
     () => {
       if (!selectedNode) return null;
@@ -1939,13 +1907,13 @@ export default function Home() {
     if (!selectedNodeId) return new Set<string>();
     const ids = new Set<string>([selectedNodeId]);
 
-    for (const edge of graphEdges) {
+    for (const edge of visibleGraphEdges) {
       if (edge.source === selectedNodeId) ids.add(edge.target);
       if (edge.target === selectedNodeId) ids.add(edge.source);
     }
 
     return ids;
-  }, [graphEdges, selectedNodeId]);
+  }, [selectedNodeId, visibleGraphEdges]);
   const selectedAncestorTrail = useMemo(() => {
     const ids: string[] = [];
     let current = visibleNodes.find((node) => node.id === selectedNodeId);
@@ -2597,7 +2565,7 @@ export default function Home() {
         }
       }
 
-      for (const edge of graphEdges) {
+      for (const edge of visibleGraphEdges) {
         const source = byId.get(edge.source);
         const target = byId.get(edge.target);
         if (!source || !target) continue;
@@ -2666,7 +2634,7 @@ export default function Home() {
 
     animationId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationId);
-  }, [graphEdges, projects]);
+  }, [projects, visibleGraphEdges]);
 
   function focusNode(node: SimNode) {
     setSelectedNodeId(node.id);
@@ -4091,7 +4059,7 @@ export default function Home() {
             <stop offset="100%" stopColor="rgba(0, 0, 0, 0.04)" />
           </linearGradient>
         </defs>
-        {graphEdges.map((edge) => {
+        {visibleGraphEdges.map((edge) => {
           const source = simNodes.find((node) => node.id === edge.source);
           const target = simNodes.find((node) => node.id === edge.target);
           if (!source || !target) return null;
@@ -4866,6 +4834,9 @@ export default function Home() {
         >
           성능 모드 {isPerformanceMode ? "ON" : "OFF"}
         </button>
+        <span className="graph-debug-metrics">
+          Nodes: {nodes.length} · Edges: {graphEdges.length} · Generated Edges: {generatedEdges.length} · Visible Edges: {visibleGraphEdges.length}
+        </span>
         <span className="share-board-label">Board:</span>
         <input
           aria-label="boardId"
