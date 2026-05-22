@@ -3,6 +3,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGestures } from "../hooks/useGestures";
+import { useViewport } from "../hooks/useViewport";
+import { useInteractionState } from "../hooks/useInteractionState";
 import { useSelection } from "../hooks/useSelection";
 import {
   generateSemanticEdges,
@@ -10,8 +12,12 @@ import {
   rebuildEdgesFromHierarchy,
   sanitizeGraphEdges,
 } from "../lib/mind/edgeEngine";
-import { edgeStrokeColor, edgeStrokeWidth, isHierarchyEdge, isSemanticEdge } from "../lib/mind/edgeRender";
 import type { GraphEdge } from "../lib/mind/types";
+import EmptyState from "./components/EmptyState";
+import EdgeLayer from "./components/EdgeLayer";
+import HUDLayer from "./components/HUDLayer";
+import MinimapLayer from "./components/MinimapLayer";
+import NodeLayer from "./components/NodeLayer";
 import { getEdgeOpacity, getVisibleEdges } from "../lib/mind/visibilityEngine";
 import EmptyState from "./components/EmptyState";
 
@@ -1698,16 +1704,24 @@ export default function Home() {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null);
   const [currentPocketId, setCurrentPocketId] = useState<string | null>(null);
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [hoveredImageId, setHoveredImageId] = useState<string | null>(null);
-  const [hoveredLinkId, setHoveredLinkId] = useState<string | null>(null);
-  const [viewport, setViewport] = useState({ width: 1200, height: 800 });
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
   const [gaze, setGaze] = useState<Gaze>({ x: 0, y: 0 });
   const [simNodes, setSimNodes] = useState<SimNode[]>([]);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
-  const [isGazePanEnabled, setIsGazePanEnabled] = useState(false);
+  const { viewport, setViewport, viewportRef } = useViewport();
+  const {
+    hoveredNodeId,
+    hoveredImageId,
+    hoveredLinkId,
+    setHoveredNodeId,
+    setHoveredImageId,
+    setHoveredLinkId,
+    isGazePanEnabled,
+    setIsGazePanEnabled,
+    pointerOverUiRef,
+    gazePanEnabledRef,
+  } = useInteractionState();
   const [isPerformanceMode, setIsPerformanceMode] = useState(true);
   const [isStructureEdit, setIsStructureEdit] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
@@ -1746,10 +1760,7 @@ export default function Home() {
   const pendingGazeRef = useRef<Gaze>({ x: 0, y: 0 });
   const autoPanFrameRef = useRef(0);
   const autoPanCursorRef = useRef({ active: false, x: 0, y: 0 });
-  const viewportRef = useRef(viewport);
   const autoPanBlockedRef = useRef(false);
-  const gazePanEnabledRef = useRef(false);
-  const pointerOverUiRef = useRef(false);
 
   const { nodes, edges, projects } = useMemo(() => buildThoughtGraph(memos), [memos]);
   const generatedEdges = useMemo(() => generateSemanticEdges(nodes, { maxEdges: 80, minScore: 0.36 }), [nodes]);
@@ -1775,13 +1786,6 @@ export default function Home() {
   const leaveInteractionSafeZone = () => {
     pointerOverUiRef.current = false;
   };
-  useEffect(() => {
-    viewportRef.current = viewport;
-  }, [viewport]);
-
-  useEffect(() => {
-    gazePanEnabledRef.current = isGazePanEnabled;
-  }, [isGazePanEnabled]);
 
   useEffect(() => {
     autoPanBlockedRef.current = Boolean(previewImage || linkModalNodeId || editingNodeId || detailEditMode);
@@ -3750,554 +3754,89 @@ export default function Home() {
         ))}
       </div>
 
-      <button
-        aria-pressed={isGazePanEnabled}
-        className={`gaze-toggle ui-layer ${isGazePanEnabled ? "gaze-toggle-on" : ""}`}
-        onClick={(event) => {
-          event.stopPropagation();
-          setIsGazePanEnabled((enabled) => !enabled);
-        }}
-        onPointerDown={(event) => event.stopPropagation()}
-        type="button"
-        {...uiLayerEvents}
-      >
-        👁
-      </button>
+      <HUDLayer
+        particles={particles}
+        selectionRect={selectionRect}
+        selectionBounds={selectionBounds}
+        selectedCount={selectedNodeIds.length}
+        isGazePanEnabled={isGazePanEnabled}
+        setIsGazePanEnabled={setIsGazePanEnabled}
+        uiLayerEvents={uiLayerEvents}
+        showOnboarding={showOnboarding}
+        viewport={viewport}
+        gaze={gaze}
+        isPerformanceMode={isPerformanceMode}
+      />
 
-      <svg className="thought-links pointer-events-none absolute inset-0 h-full w-full">
-        <defs>
-          <linearGradient id="mind-link" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(0, 0, 0, 0.02)" />
-            <stop offset="50%" stopColor="rgba(0, 0, 0, 0.2)" />
-            <stop offset="100%" stopColor="rgba(0, 0, 0, 0.04)" />
-          </linearGradient>
-          <filter id="semantic-glow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        {visibleGraphEdges.map((edge) => {
-          const source = simNodeMap.get(edge.source);
-          const target = simNodeMap.get(edge.target);
-          if (!source || !target) return null;
-
-          const sourceScreen = screenPositionMap.get(edge.source) ?? screenPosition(source);
-          const targetScreen = screenPositionMap.get(edge.target) ?? screenPosition(target);
-          const active = selectedNodeId && (edge.source === selectedNodeId || edge.target === selectedNodeId);
-          const opacity = getEdgeOpacity(edge, {
-            focusedNodeId: selectedNodeId,
-            innerSpaceNodeIds: currentPocketId ? innerSpaceNodeIds : undefined,
-          });
-          const project = source.level === "project" ? source.project : target.project;
-          const baseColor = projectLineColor(project, edge.id, 1);
-          const stroke = edgeStrokeColor(edge, opacity, baseColor);
-          const strokeWidth = edgeStrokeWidth(edge, Boolean(active), edgeLineWidth(source, target, Boolean(active)));
-          const filter = isSemanticEdge(edge) ? "url(#semantic-glow)" : undefined;
-          const className = [`thought-link`, active ? "thought-link-active" : null, isHierarchyEdge(edge) ? "thought-link--hierarchy" : null, isSemanticEdge(edge) ? "thought-link--semantic" : null]
-            .filter(Boolean)
-            .join(" ");
-
-          return (
-            <line
-              key={edge.id}
-              x1={sourceScreen.x}
-              x2={targetScreen.x}
-              y1={sourceScreen.y}
-              y2={targetScreen.y}
-              className={className}
-              opacity={active ? Math.max(opacity, 0.75) : opacity}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-              filter={filter}
-            />
-          );
-        })}
-        {imageNodes.map((image) => {
-          const source = simNodeMap.get(image.linkedNodeId);
-          if (!source) return null;
-
-          const sourceScreen = screenPositionMap.get(image.linkedNodeId) ?? screenPosition(source);
-          const targetScreen = imageScreenPosition(image);
-          const active = selectedImageId === image.id || selectedNodeId === image.linkedNodeId;
-          const sameActiveProject = selectedNode ? source.project === selectedNode.project : true;
-
-          return (
-            <line
-              className={active ? "thought-link thought-link-active" : "thought-link image-link"}
-              key={`image-link-${image.id}`}
-              opacity={active ? 0.82 : sameActiveProject ? 0.42 : 0.2}
-              stroke={projectLineColor(source.project, image.id, 1)}
-              strokeWidth={attachmentLineWidth(active)}
-              x1={sourceScreen.x}
-              x2={targetScreen.x}
-              y1={sourceScreen.y}
-              y2={targetScreen.y}
-            />
-          );
-        })}
-        {linkNodes.map((link) => {
-          const source = simNodeMap.get(link.linkedNodeId);
-          if (!source) return null;
-
-          const sourceScreen = screenPositionMap.get(link.linkedNodeId) ?? screenPosition(source);
-          const targetScreen = imageScreenPosition(link);
-          const active = selectedLinkId === link.id || selectedNodeId === link.linkedNodeId;
-          const sameActiveProject = selectedNode ? source.project === selectedNode.project : true;
-
-          return (
-            <line
-              className={active ? "thought-link thought-link-active" : "thought-link image-link"}
-              key={`link-line-${link.id}`}
-              opacity={active ? 0.82 : sameActiveProject ? 0.4 : 0.18}
-              stroke={projectLineColor(source.project, link.id, 1)}
-              strokeDasharray="3 7"
-              strokeWidth={attachmentLineWidth(active)}
-              x1={sourceScreen.x}
-              x2={targetScreen.x}
-              y1={sourceScreen.y}
-              y2={targetScreen.y}
-            />
-          );
-        })}
-      </svg>
+      <EdgeLayer
+        visibleGraphEdges={visibleGraphEdges}
+        imageNodes={imageNodes}
+        linkNodes={linkNodes}
+        simNodeMap={simNodeMap}
+        screenPositionMap={screenPositionMap}
+        selectedNodeId={selectedNodeId}
+        selectedImageId={selectedImageId}
+        selectedLinkId={selectedLinkId}
+        selectedNode={selectedNode}
+        currentPocketId={currentPocketId}
+        innerSpaceNodeIds={innerSpaceNodeIds}
+        projectLineColor={projectLineColor}
+        imageScreenPosition={imageScreenPosition}
+        edgeLineWidth={edgeLineWidth}
+        attachmentLineWidth={attachmentLineWidth}
+        getEdgeOpacity={getEdgeOpacity}
+      />
 
       {simNodes.length === 0 && <EmptyState />}
 
-      {showOnboarding && (
-        <div className="onboarding-whisper pointer-events-none">
-          Click a thought. Move through the space. Scroll only when you want distance.
-        </div>
-      )}
+      <NodeLayer
+        visibleNodes={visibleNodes}
+        imageNodes={imageNodes}
+        linkNodes={linkNodes}
+        selectedNodeId={selectedNodeId}
+        selectedImageId={selectedImageId}
+        selectedLinkId={selectedLinkId}
+        selectedNodeIdSet={selectedNodeIdSet}
+        selectedNodeIds={selectedNodeIds}
+        selectedAncestorTrail={selectedAncestorTrail}
+        selectedNeighbors={selectedNeighbors}
+        selectedAncestors={selectedAncestors}
+        currentPocketId={currentPocketId}
+        innerSpaceNodeIds={innerSpaceNodeIds}
+        nodeOverrides={nodeOverrides}
+        isPerformanceMode={isPerformanceMode}
+        gaze={gaze}
+        camera={camera}
+        viewport={viewport}
+        editingNodeId={editingNodeId}
+        selectedNode={selectedNode}
+        worldFromPointer={worldFromPointer}
+        imageScreenPosition={imageScreenPosition}
+        focusNode={focusNode}
+        enterThoughtPocket={enterThoughtPocket}
+        updateNodeLabel={updateNodeLabel}
+        updateNodeColor={updateNodeColor}
+        addChildNode={addChildNode}
+        deleteNode={deleteNode}
+        focusImage={focusImage}
+        focusLink={focusLink}
+        setHoveredNodeId={setHoveredNodeId}
+        setHoveredImageId={setHoveredImageId}
+        setHoveredLinkId={setHoveredLinkId}
+        lastDragMovedRef={lastDragMovedRef}
+        selectedNodeIdsRef={selectedNodeIdsRef}
+        suppressNextCanvasClickRef={suppressNextCanvasClickRef}
+        dragNodeRef={dragNodeRef}
+        dragImageRef={dragImageRef}
+        dragLinkRef={dragLinkRef}
+        updateSelectionDrag={updateSelectionDrag}
+        enterInteractionSafeZone={enterInteractionSafeZone}
+        leaveInteractionSafeZone={leaveInteractionSafeZone}
+        nodeClass={nodeClass}
+        colorClass={colorClass}
+      />
 
-      {visibleNodes.map((node) => {
-        const position = screenPositionMap.get(node.id) ?? screenPosition(node);
-        const ancestorIndex = selectedAncestorTrail.indexOf(node.id);
-        const ancestor = ancestorIndex >= 0;
-        const distance = Math.hypot(node.x - camera.x, node.y - camera.y);
-        const selected = selectedNodeId === node.id;
-        const multiSelected = selectedNodeIdSet.has(node.id);
-        const hovered = hoveredNodeId === node.id;
-        const innerDimmed = Boolean(currentPocketId && !innerSpaceNodeIds.has(node.id));
-        const dimmed = currentPocketId
-          ? innerDimmed && !multiSelected
-          : Boolean((selectedNodeId && !selectedNeighbors.has(node.id) && !ancestor) || (selectedNodeIds.length > 0 && !multiSelected));
-        const neighbor = selectedNodeId && selectedNeighbors.has(node.id);
-        const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
-        const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
-        const edgeDepth = (Math.abs(curveX) + Math.abs(curveY)) * -DEPTH_STRENGTH * 0.42;
-        const focusDepth = selected
-          ? FOCUS_ZOOM_STRENGTH * 1.32
-          : ancestor
-            ? FOCUS_ZOOM_STRENGTH * 0.62
-            : neighbor
-              ? FOCUS_ZOOM_STRENGTH * 0.32
-              : 0;
-        const zDepth = edgeDepth + focusDepth - clamp(distance / 18, 0, DEPTH_STRENGTH);
-        const ancestorOpacity = ancestor ? clamp(0.7 - ancestorIndex * 0.15, 0.32, 0.7) : 0;
-        const ancestorBlur = isPerformanceMode ? 0 : ancestor ? clamp(0.25 + ancestorIndex * 0.12, 0.25, 0.5) : 0;
-        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : clamp(1 - distance / 1900 + zDepth / 1400, 0.46, 0.96);
-        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : clamp(distance / 1600 - zDepth / 900, 0, 0.35);
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
-        const curveRotateY = -curveX * CURVE_STRENGTH + gaze.x * GAZE_PARALLAX_STRENGTH * 0.8;
-        const curveRotateX = curveY * CURVE_STRENGTH * 0.72 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.6;
-        const scale =
-          (selected
-            ? 1.72
-            : multiSelected
-              ? node.level === "project" ? 1.1 : 0.94
-            : ancestor
-              ? clamp(1.2 + ancestorIndex * 0.15, 1.2, 1.5)
-              : neighbor
-              ? node.level === "project" ? 1.22 : 1.08
-              : node.level === "project" ? 0.86 : node.level === "category" ? 0.72 : 0.6) *
-          (ancestor && !selected ? 1 : clamp(1 + zDepth / 900, 0.78, 1.16)) *
-          (1 - edgeAmount * EDGE_DISTORTION_STRENGTH) *
-          (hovered && !selected ? 1.08 : 1) *
-          camera.zoom;
-
-        const activateNode = (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
-          if (lastDragMovedRef.current) {
-            lastDragMovedRef.current = false;
-            return;
-          }
-          if (suppressNextCanvasClickRef.current) {
-            suppressNextCanvasClickRef.current = false;
-            event.preventDefault();
-            console.log("selection persisted", selectedNodeIdsRef.current.length);
-            return;
-          }
-          if (event.shiftKey) {
-            event.preventDefault();
-            return;
-          }
-          if (event.metaKey || event.ctrlKey) {
-            event.preventDefault();
-            addChildNode(node);
-            return;
-          }
-          focusNode(node);
-        };
-
-        return (
-          <div
-            className={`${nodeClass(node.level, selected, dimmed)} ${colorClass(node.color)} ${multiSelected ? "thought-multi-selected" : ""} ${ancestor && !selected ? "thought-ancestor" : ""} ${editingNodeId === node.id ? "thought-editing" : ""}`}
-            key={node.id}
-            role="button"
-            tabIndex={0}
-            onClickCapture={(event) => {
-              console.log("RAW NODE CLICK", node.id, event.shiftKey);
-            }}
-            onClick={activateNode}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                activateNode(event);
-              }
-            }}
-            onDoubleClick={(event) => {
-              event.stopPropagation();
-              enterThoughtPocket(node);
-            }}
-            onPointerEnter={() => {
-              if (!isPerformanceMode) setHoveredNodeId(node.id);
-            }}
-            onPointerLeave={() => {
-              if (!isPerformanceMode) setHoveredNodeId((current) => (current === node.id ? null : current));
-            }}
-            onPointerDown={(event) => {
-              console.log("RAW NODE POINTER DOWN", node.id, event.shiftKey);
-              event.stopPropagation();
-              if (event.shiftKey) return;
-              const point = worldFromPointer(event.clientX, event.clientY);
-              const groupIds = selectedNodeIdSet.has(node.id) && selectedNodeIds.length > 1 ? new Set(selectedNodeIds) : undefined;
-              const groupDrag = Boolean(groupIds) || isStructureEdit || node.level !== "detail";
-              dragNodeRef.current = {
-                id: node.id,
-                moved: false,
-                structure: groupDrag,
-                lastX: point.x,
-                lastY: point.y,
-                ids: groupIds,
-              };
-              event.currentTarget.setPointerCapture(event.pointerId);
-            }}
-            style={{
-              left: position.x,
-              top: position.y,
-              zIndex: selected ? 32 : multiSelected ? 28 : ancestor ? 30 - ancestorIndex : neighbor ? 18 : undefined,
-              opacity: dimmed ? undefined : neighbor && !selected ? Math.max(depthOpacity, 0.58) : depthOpacity,
-              filter: dimmed || depthBlur <= 0 ? undefined : `blur(${depthBlur}px)`,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * GAZE_PARALLAX_STRENGTH * 0.72}px, ${gaze.y * GAZE_PARALLAX_STRENGTH * 0.58}px, ${zDepth}px) rotateX(${curveRotateX}deg) rotateY(${curveRotateY}deg) scale(${scale})`,
-            }}
-          >
-            {editingNodeId === node.id ? (
-              <span
-                className="node-editor floating-action-layer"
-                {...uiLayerEvents}
-                onClick={(event) => event.stopPropagation()}
-                onDoubleClick={(event) => event.stopPropagation()}
-                onPointerDown={(event) => event.stopPropagation()}
-              >
-                <input
-                  autoFocus
-                  value={nodeOverrides[node.id]?.label ?? node.label}
-                  onChange={(event) => updateNodeLabel(node.id, event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") setEditingNodeId(null);
-                  }}
-                />
-                <button
-                  className="node-add-child"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    addChildNode(node);
-                  }}
-                  onPointerDown={(event) => event.stopPropagation()}
-                  type="button"
-                >
-                  +
-                </button>
-                <span className="color-orbit">
-                  {colorLabels.map((color) => (
-                    <button
-                      className={`color-swatch thought-color-${color}`}
-                      key={`${node.id}-${color}`}
-                      onClick={() => updateNodeColor(node.id, color)}
-                      type="button"
-                    />
-                  ))}
-                </span>
-              </span>
-            ) : (
-              node.label
-            )}
-            {selected && editingNodeId !== node.id && (
-              <span className="node-actions floating-action-layer" {...uiLayerEvents} onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-                <button onClick={() => setEditingNodeId(node.id)} type="button">Edit</button>
-                <button onClick={() => enterThoughtPocket(node)} type="button">진입</button>
-                <button onClick={() => addChildNode(node)} type="button">+</button>
-                <button
-                  onClick={() => {
-                    setLinkModalNodeId(node.id);
-                    setLinkUrl("");
-                    setLinkError("");
-                  }}
-                  type="button"
-                >
-                  🔗
-                </button>
-                <label className="node-upload">
-                  Img
-                  <input
-                    accept="image/*"
-                    multiple
-                    onChange={(event) => {
-                      void addImagesToNode(node.id, event.target.files);
-                      event.currentTarget.value = "";
-                    }}
-                    type="file"
-                  />
-                </label>
-                <button onClick={() => generateImageForNode(node.id, node.label)} type="button">AI</button>
-                <button onClick={() => deleteNode(node.id)} type="button">Del</button>
-              </span>
-            )}
-          </div>
-        );
-      })}
-
-      {imageNodes.map((image, index) => {
-        const position = imageScreenPosition(image);
-        const selected = selectedImageId === image.id;
-        const hovered = hoveredImageId === image.id;
-        const linkedNode = visibleNodes.find((node) => node.id === image.linkedNodeId);
-        const directFocus = Boolean(selectedNodeId && image.linkedNodeId === selectedNodeId);
-        const nearbyFocus = Boolean(
-          selectedNode &&
-            linkedNode &&
-            (selectedNeighbors.has(linkedNode.id) ||
-              selectedAncestors.has(linkedNode.id) ||
-              linkedNode.parentId === selectedNode.id ||
-              selectedNode.parentId === linkedNode.id ||
-              linkedNode.parentId === selectedNode.parentId),
-        );
-        const activeProjectImage = Boolean(selectedNode && linkedNode?.project === selectedNode.project);
-        const innerHidden = Boolean(currentPocketId && image.linkedNodeId && !innerSpaceNodeIds.has(image.linkedNodeId));
-        const distance = Math.hypot(image.x - camera.x, image.y - camera.y);
-        const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
-        const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
-        const depthState = selected || directFocus
-          ? { opacity: 1, scale: selected ? 1.34 : 1 }
-          : nearbyFocus
-            ? { opacity: 0.75, scale: 0.92 }
-            : activeProjectImage
-              ? { opacity: 0.5, scale: 0.82 }
-              : selectedNode
-                ? { opacity: 0.32, scale: 0.72 }
-                : {
-                    opacity: clamp(1 - distance / 2100, 0.54, 0.9),
-                    scale: image.level === "project" ? 1 : 0.84,
-                  };
-        const opacity = innerHidden ? 0.16 : hovered && !selected ? clamp(depthState.opacity + 0.25, 0, 1) : depthState.opacity;
-        const scale = (depthState.scale + (hovered && !selected ? 0.08 : 0)) * (1 - edgeAmount * EDGE_DISTORTION_STRENGTH) * camera.zoom;
-        const zDepth = selected ? 180 : hovered ? 82 : image.z ?? 0;
-        const rotateX = curveY * CURVE_STRENGTH * 0.45 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.45;
-        const rotateY = -curveX * CURVE_STRENGTH * 0.7 + gaze.x * GAZE_PARALLAX_STRENGTH * 0.65;
-
-        return (
-          <figure
-            className={`image-node interaction-safe-zone ${selected ? "image-node-selected" : ""}`}
-            {...uiLayerEvents}
-            key={`image-node-${image.id}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (lastDragMovedRef.current) {
-                lastDragMovedRef.current = false;
-                return;
-              }
-              focusImage(image);
-            }}
-            onDoubleClick={(event) => {
-              event.stopPropagation();
-              setGalleryMode("slide");
-              setPreviewImage(image);
-            }}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              const point = worldFromPointer(event.clientX, event.clientY);
-              dragImageRef.current = {
-                id: image.id,
-                linkedNodeId: image.linkedNodeId ?? "",
-                moved: false,
-                lastX: point.x,
-                lastY: point.y,
-              };
-              event.currentTarget.setPointerCapture(event.pointerId);
-            }}
-            onMouseEnter={enterInteractionSafeZone}
-            onMouseLeave={() => {
-              leaveInteractionSafeZone();
-            }}
-            onMouseMove={(event) => {
-              enterInteractionSafeZone();
-              if (!dragImageRef.current) event.stopPropagation();
-            }}
-            onPointerEnter={() => {
-              enterInteractionSafeZone();
-            }}
-            onPointerLeave={() => {
-              leaveInteractionSafeZone();
-            }}
-            onPointerMove={(event) => {
-              enterInteractionSafeZone();
-              if (updateSelectionDrag(event.clientX, event.clientY)) return;
-              if (!dragImageRef.current) event.stopPropagation();
-            }}
-            onWheel={(event) => event.stopPropagation()}
-            style={{
-              left: position.x,
-              top: position.y,
-              opacity,
-              filter: undefined,
-              zIndex: selected ? 31 : hovered ? 22 : 10,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * GAZE_PARALLAX_STRENGTH * 0.9}px, ${gaze.y * GAZE_PARALLAX_STRENGTH * 0.72}px, ${zDepth}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotate(${[-5, 3, -2, 6, -7, 4][index % 6]}deg) scale(${scale})`,
-            }}
-          >
-            {image.src ? (
-              <img
-                className="interaction-safe-zone"
-                alt={image.name}
-                draggable={false}
-                onDragStart={(event) => event.preventDefault()}
-                src={image.src}
-              />
-            ) : (
-              <span className="image-placeholder interaction-safe-zone">Image</span>
-            )}
-            <figcaption>{image.linkedLabel}</figcaption>
-          </figure>
-        );
-      })}
-
-      {linkNodes.map((link, index) => {
-        const position = imageScreenPosition(link);
-        const selected = selectedLinkId === link.id;
-        const hovered = hoveredLinkId === link.id;
-        const innerHidden = Boolean(currentPocketId && !innerSpaceNodeIds.has(link.linkedNodeId));
-        const distance = Math.hypot(link.x - camera.x, link.y - camera.y);
-        const curveX = clamp((position.x - viewport.width / 2) / (viewport.width / 2), -1, 1);
-        const curveY = clamp((position.y - viewport.height / 2) / (viewport.height / 2), -1, 1);
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
-        const opacity = innerHidden ? 0.16 : selected || hovered ? 1 : clamp(1 - distance / 2100, 0.54, 0.94);
-        const scale = (selected ? 1.25 : hovered ? 1.08 : 0.86) * (1 - edgeAmount * EDGE_DISTORTION_STRENGTH) * camera.zoom;
-        const zDepth = selected ? 165 : hovered ? 72 : link.z ?? 0;
-        const rotateX = curveY * CURVE_STRENGTH * 0.38 - gaze.y * GAZE_PARALLAX_STRENGTH * 0.36;
-        const rotateY = -curveX * CURVE_STRENGTH * 0.62 + gaze.x * GAZE_PARALLAX_STRENGTH * 0.52;
-
-        return (
-          <figure
-            className={`link-node interaction-safe-zone link-node-${link.source} ${selected ? "link-node-selected" : ""}`}
-            {...uiLayerEvents}
-            key={`link-node-${link.id}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (lastDragMovedRef.current) {
-                lastDragMovedRef.current = false;
-                return;
-              }
-              focusLink(link);
-            }}
-            onDoubleClick={(event) => {
-              event.stopPropagation();
-              openLinkUrl(link.url);
-            }}
-            onPointerDown={(event) => {
-              event.stopPropagation();
-              const point = worldFromPointer(event.clientX, event.clientY);
-              dragLinkRef.current = {
-                id: link.id,
-                linkedNodeId: link.linkedNodeId,
-                moved: false,
-                lastX: point.x,
-                lastY: point.y,
-              };
-              event.currentTarget.setPointerCapture(event.pointerId);
-            }}
-            onMouseEnter={enterInteractionSafeZone}
-            onMouseLeave={() => {
-              leaveInteractionSafeZone();
-            }}
-            onMouseMove={(event) => {
-              enterInteractionSafeZone();
-              if (!dragLinkRef.current) event.stopPropagation();
-            }}
-            onPointerEnter={() => {
-              enterInteractionSafeZone();
-            }}
-            onPointerLeave={() => {
-              leaveInteractionSafeZone();
-            }}
-            onPointerMove={(event) => {
-              enterInteractionSafeZone();
-              if (updateSelectionDrag(event.clientX, event.clientY)) return;
-              if (!dragLinkRef.current) event.stopPropagation();
-            }}
-            onWheel={(event) => event.stopPropagation()}
-            style={{
-              left: position.x,
-              top: position.y,
-              opacity,
-              filter: undefined,
-              zIndex: selected ? 31 : hovered ? 22 : 10,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * GAZE_PARALLAX_STRENGTH * 0.82}px, ${gaze.y * GAZE_PARALLAX_STRENGTH * 0.64}px, ${zDepth}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotate(${[-3, 2, -1, 4][index % 4]}deg) scale(${scale})`,
-            }}
-          >
-            {link.thumbnailUrl ? (
-              <img
-                className="interaction-safe-zone"
-                alt={link.title ?? link.url}
-                draggable={false}
-                onDragStart={(event) => event.preventDefault()}
-                src={link.thumbnailUrl}
-              />
-            ) : (
-              <span className="link-card interaction-safe-zone">
-                <strong>{link.title ?? link.source}</strong>
-                <small>{link.url.replace(/^https?:\/\//, "").slice(0, 42)}</small>
-              </span>
-            )}
-            <figcaption>
-              <span>{link.linkedLabel}</span>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  openLinkUrl(link.url);
-                }}
-                onPointerDown={(event) => event.stopPropagation()}
-                type="button"
-              >
-                열기
-              </button>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  deleteNodeLink(link.linkedNodeId, link.id);
-                }}
-                onPointerDown={(event) => event.stopPropagation()}
-                type="button"
-              >
-                삭제
-              </button>
-            </figcaption>
-          </figure>
-        );
-      })}
-
+      <MinimapLayer viewport={viewport} camera={camera} visibleNodes={visibleNodes} />
       <section
         className="input-layer glass-layer draggable-layer ui-layer"
         {...uiLayerEvents}
