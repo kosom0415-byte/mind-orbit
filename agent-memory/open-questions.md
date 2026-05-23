@@ -1,6 +1,6 @@
 # Open Questions
 
-Updated: 2026-05-23T14:35:56.274Z
+Updated: 2026-05-23T15:07:56.740Z
 
 ## Pending
 - None.

@@ -99,6 +99,15 @@ export function generateGptPmReport(input: LoopRunReportInput): string {
     `- Required: ${input.task.humanApprovalRequired ? "yes" : "no"}`,
     `- Type: ${approvalState}`,
     "",
+    "### Approval Required",
+    ...(input.task.humanApprovalRequired
+      ? [
+          `- Task: ${input.task.id}`,
+          `- Risk: ${input.task.riskLevel ?? "unknown"}`,
+          `- Reason: ${input.task.riskReasons?.join("; ") ?? input.task.blockedReason ?? "Approval-gated task."}`,
+        ]
+      : ["- none"]),
+    "",
     "### Codex Engineer Handoff",
     generateCodexHandoff(input.task),
   ].join("\n");

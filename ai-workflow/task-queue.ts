@@ -7,15 +7,19 @@ import { createTaskFromDecision, decidePriority, extractNextTaskInput, recommend
 import { generateGptPmReport } from "./report-generator";
 import { readMemorySnapshot } from "./loop-runner";
 import { buildCodebaseIndex } from "./codebase-index";
+import { enforceApprovalGate, writeApprovalReports, type ApprovalGateResult, type RiskLevel } from "./approval-gate";
 
-type QueueStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "human_approval_required";
+type QueueStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "human_approval_required" | "cancelled";
 
 interface QueueTask extends WorkflowTask {
   queueStatus: QueueStatus;
   severity: BugSeverity;
+  riskLevel?: RiskLevel;
+  riskReasons?: string[];
   lastError?: string;
   completedAt?: string;
   failedAt?: string;
+  cancelledAt?: string;
 }
 
 interface QueueState {
@@ -51,6 +55,7 @@ const STATUS_ORDER: QueueStatus[] = [
   "running",
   "pending",
   "failed",
+  "cancelled",
   "completed",
 ];
 
@@ -78,9 +83,15 @@ export function runTaskQueue(projectRoot: string): QueueRunResult {
   const queueTask = toQueueTask(task, decision.severity);
   const tasks = upsertTask(previousState.tasks, queueTask);
   const normalizedTasks = normalizeFailedTasks(tasks, generatedAt);
-  const selectedTask = selectNextTask(normalizedTasks);
+  const gateResults = normalizedTasks.map((item) => enforceApprovalGate(projectRoot, item, generatedAt) as ApprovalGateResult<QueueTask>);
+  const gatedTasks = gateResults.map((result) => result.task);
+  const selectedTask = selectNextTask(gatedTasks);
 
   if (selectedTask) {
+    const executionGate = enforceApprovalGate(projectRoot, selectedTask, generatedAt);
+    if (executionGate.action !== "allow") {
+      Object.assign(selectedTask, executionGate.task);
+    } else {
     selectedTask.queueStatus = "running";
     selectedTask.status = "in_progress";
     selectedTask.attempts += 1;
@@ -96,15 +107,16 @@ export function runTaskQueue(projectRoot: string): QueueRunResult {
       selectedTask.completedAt = generatedAt;
       selectedTask.nextSuggestedTask = recommendNextAction(selectedTask, decision);
     }
+    }
   }
 
-  const failedHistory = collectFailedHistory(previousState.failedHistory, normalizedTasks);
-  const nextAction = recommendQueueNextAction(normalizedTasks);
+  const failedHistory = collectFailedHistory(previousState.failedHistory, gatedTasks);
+  const nextAction = recommendQueueNextAction(gatedTasks);
   const codebaseImpact = calculateCodebaseImpact(projectRoot, selectedTask);
   const state: QueueState = {
     version: 1,
     generatedAt,
-    tasks: sortTasks(normalizedTasks),
+    tasks: sortTasks(gatedTasks),
     failedHistory,
     nextAction,
     codebaseImpact,
@@ -114,6 +126,7 @@ export function runTaskQueue(projectRoot: string): QueueRunResult {
 
   writeFileSync(join(projectRoot, TASK_QUEUE_PATH), markdown, "utf8");
   writeFileSync(join(projectRoot, TASK_QUEUE_REPORT_PATH), gptPmReport, "utf8");
+  writeApprovalReports(projectRoot, gateResults, generatedAt);
 
   return { selectedTask, state, markdown, gptPmReport };
 }
@@ -268,6 +281,7 @@ function generateQueueMarkdown(state: QueueState): string {
     `- Running: ${countByStatus(state.tasks, "running")}`,
     `- Blocked: ${countByStatus(state.tasks, "blocked")}`,
     `- Completed: ${countByStatus(state.tasks, "completed")}`,
+    `- Cancelled: ${countByStatus(state.tasks, "cancelled")}`,
     `- Human approval required: ${countByStatus(state.tasks, "human_approval_required")}`,
     `- Next action: ${state.nextAction}`,
     "",
@@ -275,6 +289,7 @@ function generateQueueMarkdown(state: QueueState): string {
     renderTaskSection("Running", state.tasks, "running"),
     renderTaskSection("Blocked", state.tasks, "blocked"),
     renderTaskSection("Human Approval Required", state.tasks, "human_approval_required"),
+    renderTaskSection("Cancelled", state.tasks, "cancelled"),
     renderTaskSection("Completed", state.tasks, "completed"),
     "## Recent Failed Task History",
     renderTaskTable(state.failedHistory),
@@ -321,7 +336,14 @@ function generateQueueGptPmReport(state: QueueState, selectedTask?: QueueTask): 
     "### Queue Result",
     `- Selected task: ${selectedTask?.id ?? "none"}`,
     `- Selected status: ${selectedTask?.queueStatus ?? "none"}`,
+    `- Selected risk: ${selectedTask?.riskLevel ?? "none"}`,
     `- Next action: ${state.nextAction}`,
+    "",
+    "### Approval Required",
+    ...state.tasks
+      .filter((task) => task.queueStatus === "human_approval_required")
+      .map((task) => `- ${task.id}: ${task.title} (${task.riskLevel ?? "unknown"})`),
+    ...(state.tasks.some((task) => task.queueStatus === "human_approval_required") ? [] : ["- none"]),
     "",
     "### GPT PM Next-Step Recommendation",
     `- ${state.nextAction}`,
@@ -382,11 +404,11 @@ function renderTaskTable(tasks: QueueTask[]): string {
   if (tasks.length === 0) return "- none";
 
   return [
-    "| ID | Priority | Severity | Attempts | Owner | Title |",
-    "| --- | --- | --- | --- | --- | --- |",
+    "| ID | Priority | Severity | Risk | Attempts | Owner | Title |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
     ...tasks.map(
       (task) =>
-        `| ${task.id} | ${task.priority} | ${task.severity} | ${task.attempts}/${task.maxAttempts} | ${task.owner} | ${escapeTable(task.title)} |`,
+        `| ${task.id} | ${task.priority} | ${task.severity} | ${task.riskLevel ?? "unknown"} | ${task.attempts}/${task.maxAttempts} | ${task.owner} | ${escapeTable(task.title)} |`,
     ),
   ].join("\n");
 }

@@ -44,6 +44,11 @@ interface QueueStateLike {
     maxAttempts?: number;
     humanApprovalRequired?: boolean;
     approvalTypes?: string[];
+    riskLevel?: string;
+    riskReasons?: string[];
+    approvedBy?: string;
+    approvedAt?: string;
+    approvalReason?: string;
     validationRequired?: string[];
   }>;
   nextAction?: string;
@@ -59,6 +64,7 @@ const ENGINEER_REPORT_PATH = "logs/engineer-report-latest.md";
 const TASK_QUEUE_PATH = "logs/task-queue.md";
 const OPEN_QUESTIONS_PATH = "agent-memory/open-questions.md";
 const HUMAN_APPROVAL_PATH = "agent-memory/human-approval-required.md";
+const APPROVAL_REQUEST_PATH = "agent-memory/approval-request.md";
 const NEXT_CODEX_HANDOFF_PATH = "agent-memory/next-codex-handoff.md";
 const BRIDGE_LOG_PATH = "logs/gpt-codex-bridge.md";
 const STATE_BLOCK_START = "<!-- task-queue-state";
@@ -78,11 +84,13 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
   ensureDirectories(projectRoot);
 
   const generatedAt = new Date().toISOString();
-  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH];
+  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, APPROVAL_REQUEST_PATH];
   const gptPmReport = readOptional(projectRoot, GPT_PM_REPORT_PATH);
   const engineerReport = readOptional(projectRoot, ENGINEER_REPORT_PATH);
   const queueMarkdown = readOptional(projectRoot, TASK_QUEUE_PATH);
   const previousQuestions = readOptional(projectRoot, OPEN_QUESTIONS_PATH);
+  const previousHumanApproval = readOptional(projectRoot, HUMAN_APPROVAL_PATH);
+  const approvalRequest = readOptional(projectRoot, APPROVAL_REQUEST_PATH);
   const queueState = parseQueueState(queueMarkdown);
   const engineer = parseEngineerReport(engineerReport);
 
@@ -91,7 +99,7 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
     ...questionsFromBlockedTasks(queueState),
     ...questionsFromHumanApprovalTasks(queueState),
   ]);
-  const humanApprovals = humanApprovalsFromQueue(queueState, engineer.humanApprovalNeeded);
+  const humanApprovals = humanApprovalsFromQueue(queueState, engineer.humanApprovalNeeded, previousHumanApproval, approvalRequest);
   const gptAnswer = port.parseGptAnswer(gptPmReport);
   const nextTask = gptAnswer.nextTask ?? taskFromQueueOrFallback(queueState, questions, generatedAt);
   const codexHandoff = port.createCodexHandoff(nextTask);
@@ -147,17 +155,17 @@ function questionsFromHumanApprovalTasks(queueState: QueueStateLike): BridgeQues
     .map((task) => ({
       source: "human-approval",
       taskId: task.id,
-      text: `Human approval required before continuing: ${task.title ?? task.id ?? "unknown task"}`,
+      text: `Human approval required before continuing: ${task.title ?? task.id ?? "unknown task"}${task.riskLevel ? ` (${task.riskLevel})` : ""}`,
     }));
 }
 
-function humanApprovalsFromQueue(queueState: QueueStateLike, reportApprovals: string[]): HumanApprovalItem[] {
+function humanApprovalsFromQueue(queueState: QueueStateLike, reportApprovals: string[], previousHumanApproval: string, approvalRequest: string): HumanApprovalItem[] {
   const queueApprovals = (queueState.tasks ?? [])
     .filter((task) => task.queueStatus === "human_approval_required" || task.humanApprovalRequired)
     .map((task) => ({
       taskId: task.id ?? "unknown-task",
       title: task.title ?? "Untitled approval task",
-      reason: task.blockedReason ?? "Queue marked this task as human approval required.",
+      reason: task.blockedReason ?? task.riskReasons?.join("; ") ?? "Queue marked this task as human approval required.",
       approvalTypes: task.approvalTypes?.length ? task.approvalTypes : ["human_review"],
     }));
 
@@ -170,7 +178,8 @@ function humanApprovalsFromQueue(queueState: QueueStateLike, reportApprovals: st
       approvalTypes: ["human_review"],
     }));
 
-  return dedupeHumanApprovals([...queueApprovals, ...reportItems]);
+  const requestItems = extractApprovalTasksFromMarkdown(`${previousHumanApproval}\n${approvalRequest}`);
+  return dedupeHumanApprovals([...queueApprovals, ...reportItems, ...requestItems]);
 }
 
 function taskFromQueueOrFallback(queueState: QueueStateLike, questions: BridgeQuestion[], generatedAt: string): WorkflowTask {
@@ -220,6 +229,11 @@ function normalizeWorkflowTask(task: NonNullable<QueueStateLike["tasks"]>[number
     productionSafeMode: true,
     humanApprovalRequired,
     approvalTypes: normalizeApprovalTypes(task.approvalTypes),
+    riskLevel: task.riskLevel as WorkflowTask["riskLevel"],
+    riskReasons: task.riskReasons,
+    approvedBy: task.approvedBy,
+    approvedAt: task.approvedAt,
+    approvalReason: task.approvalReason,
     createdAt: generatedAt,
     updatedAt: generatedAt,
     context: task.context ?? "Generated from logs/task-queue.md by GPT Codex bridge.",
@@ -399,8 +413,20 @@ function normalizeApprovalTypes(values?: string[]): ApprovalType[] {
     "billing_or_paid_feature",
     "domain_or_alias",
     "user_data_change",
+    "high_risk_task",
+    "retry_limit_exceeded",
   ];
   return (values ?? []).filter((value): value is ApprovalType => allowed.includes(value as ApprovalType));
+}
+
+function extractApprovalTasksFromMarkdown(markdown: string): HumanApprovalItem[] {
+  const matches = [...markdown.matchAll(/Task:\s*([^\n]+)(?:[\s\S]*?Title:\s*([^\n]+))?(?:[\s\S]*?Reason:\s*([^\n]+))?/gi)];
+  return matches.map((match) => ({
+    taskId: match[1]?.trim() || "approval-request",
+    title: match[2]?.trim() || "Approval request",
+    reason: match[3]?.trim() || "Approval request markdown contains a pending task.",
+    approvalTypes: ["human_review"],
+  }));
 }
 
 function readOptional(projectRoot: string, relativePath: string): string {

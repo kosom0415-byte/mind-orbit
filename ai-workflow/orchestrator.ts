@@ -7,6 +7,7 @@ export type TaskStatus =
   | "needs_human_approval"
   | "ready_for_review"
   | "done"
+  | "cancelled"
   | "failed";
 
 export type BugSeverity = "s0-production-down" | "s1-critical" | "s2-major" | "s3-minor";
@@ -19,7 +20,9 @@ export type ApprovalType =
   | "supabase_schema_or_permission"
   | "billing_or_paid_feature"
   | "domain_or_alias"
-  | "user_data_change";
+  | "user_data_change"
+  | "high_risk_task"
+  | "retry_limit_exceeded";
 
 export interface WorkflowTask {
   id: string;
@@ -41,6 +44,11 @@ export interface WorkflowTask {
   blockedReason?: string;
   validationRequired?: string[];
   nextSuggestedTask?: string;
+  riskLevel?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  riskReasons?: string[];
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalReason?: string;
 }
 
 export interface EngineerReport {

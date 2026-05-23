@@ -1,6 +1,6 @@
 # GPT Codex Bridge Log
 
-Generated: 2026-05-23T14:35:56.274Z
+Generated: 2026-05-23T15:07:56.740Z
 
 ## Flow
 - agent:loop creates GPT PM and Codex reports.
@@ -13,6 +13,8 @@ Generated: 2026-05-23T14:35:56.274Z
 - logs/engineer-report-latest.md
 - logs/task-queue.md
 - agent-memory/open-questions.md
+- agent-memory/human-approval-required.md
+- agent-memory/approval-request.md
 
 ## Files Written
 - agent-memory/open-questions.md
@@ -24,7 +26,10 @@ Generated: 2026-05-23T14:35:56.274Z
 - None.
 
 ## Human Approval Required
-- None.
+- approval-test-high-page: Refactor app/page.tsx camera system
+- approval-test-retry-limit: Retry failed build fix
+- approval-test-high-page: Retry failed build fix
+- approval-test-retry-limit: Approval request
 
 ## Mock GPT Answer Parser
 - Mock parser detected a next task.
