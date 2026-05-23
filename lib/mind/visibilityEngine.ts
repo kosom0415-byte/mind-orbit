@@ -130,9 +130,9 @@ export function getEdgeOpacity(edge: GraphEdge, options: EdgeOpacityOptions = {}
     Boolean(focusedNodeId && (edge.source === focusedNodeId || edge.target === focusedNodeId)) ||
     Boolean(options.innerSpaceNodeIds?.has(edge.source) || options.innerSpaceNodeIds?.has(edge.target));
 
-  if (isTemporaryEdge(edge)) return isFocused ? 0.82 : 0.55;
-  if (isHierarchyEdge(edge)) return isFocused ? 0.45 : 0.15;
-  if (isSemanticLikeEdge(edge)) return isFocused ? 0.8 : 0.35;
+  if (isTemporaryEdge(edge)) return isFocused ? 0.92 : 0.62;
+  if (isHierarchyEdge(edge)) return isFocused ? 0.62 : 0.26;
+  if (isSemanticLikeEdge(edge)) return isFocused ? 0.88 : 0.52;
 
-  return isFocused ? 0.7 : 0.24;
+  return isFocused ? 0.78 : 0.32;
 }

@@ -1856,6 +1856,15 @@ export default function Home() {
     isInteractiveTarget,
   });
   const selectedNode = useMemo(() => (selectedNodeId ? visibleNodeMap.get(selectedNodeId) ?? null : null), [selectedNodeId, visibleNodeMap]);
+  useEffect(() => {
+    if (!selectedNode) return;
+    targetCameraRef.current = {
+      x: selectedNode.x,
+      y: selectedNode.y,
+      zoom: Math.max(0.95, Math.min(1.08, targetCameraRef.current.zoom)),
+    };
+  }, [selectedNode]);
+
   const currentPocketNode = useMemo(
     () => (currentPocketId ? visibleNodeMap.get(currentPocketId) ?? null : null),
     [currentPocketId, visibleNodeMap],
@@ -3885,12 +3894,31 @@ export default function Home() {
         />
         {isAiAnalyzing && (
           <div className="ai-analysis-status" aria-live="polite">
-            <p className="ai-analysis-status-line">
-              <span className="analysis-loading-dot" aria-hidden="true" />
-              <span>{inputMode === "question" ? "AI가 Thought Pocket을 분석 중입니다..." : "AI가 프로젝트 구조를 분석 중입니다..."}</span>
-            </p>
+            <div className="ai-analysis-status-top">
+              <p className="ai-analysis-status-line">
+                <span className="analysis-loading-dot" aria-hidden="true" />
+                <span>{inputMode === "question" ? "AI가 Thought Pocket을 분석 중입니다..." : "AI가 프로젝트 구조를 분석 중입니다..."}</span>
+              </p>
+              <span className="analysis-step">단계 {aiProgressIndex + 1} / {AI_ANALYSIS_MESSAGES.length}</span>
+            </div>
             <strong>{AI_ANALYSIS_MESSAGES[aiProgressIndex]}</strong>
             <small>{inputMode === "question" ? "질문의 배경과 다음 사고 흐름을 정리하고 있습니다..." : "문맥 관계와 키워드 계층을 정리하고 있습니다..."}</small>
+            {!analysisPreview && (
+              <div className="analysis-skeleton" aria-hidden="true">
+                <div className="analysis-skeleton-meta">
+                  <span className="analysis-skeleton-title" />
+                  <span className="analysis-skeleton-line short" />
+                  <span className="analysis-skeleton-line" />
+                </div>
+                <div className="analysis-skeleton-graph">
+                  <span className="analysis-skeleton-node node-a" />
+                  <span className="analysis-skeleton-node node-b" />
+                  <span className="analysis-skeleton-node node-c" />
+                  <span className="analysis-skeleton-edge edge-ab" />
+                  <span className="analysis-skeleton-edge edge-ac" />
+                </div>
+              </div>
+            )}
           </div>
         )}
         {analysisError && <p className="analysis-error">{analysisError}</p>}
