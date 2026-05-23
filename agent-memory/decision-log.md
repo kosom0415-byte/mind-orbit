@@ -28,3 +28,14 @@
 - Next action: Generate Codex handoff and proceed on dev with build validation.
 - External API calls: none
 - Production changes: none
+
+## 2026-05-23T08:01:54.606Z
+
+- Auto-selected task: Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+- Severity: s3-minor
+- Priority: low
+- Status: queued
+- Human approval required: no
+- Next action: Generate Codex handoff and proceed on dev with build validation.
+- External API calls: none
+- Production changes: none

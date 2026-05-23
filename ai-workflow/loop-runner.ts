@@ -9,7 +9,7 @@ import {
   recommendNextAction,
   type MemorySnapshot,
 } from "./priority-engine";
-import { generateDecisionLogEntry, generateEngineerReport, generateLoopLog } from "./report-generator";
+import { generateDecisionLogEntry, generateEngineerReport, generateGptPmReport, generateLoopLog } from "./report-generator";
 
 export interface LoopRunnerOptions {
   projectRoot: string;
@@ -25,7 +25,9 @@ export interface LoopRunnerResult {
   humanApprovalRequired: boolean;
   nextAction: string;
   engineerReport: string;
+  gptPmReport: string;
   loopLog: string;
+  logPath: string;
 }
 
 const WORKFLOW_STATE_PATH = "agent-memory/workflow-state.md";
@@ -33,6 +35,7 @@ const OPEN_QUESTIONS_PATH = "agent-memory/open-questions.md";
 const DECISION_LOG_PATH = "agent-memory/decision-log.md";
 const LOOP_LOG_PATH = "logs/agent-loop-latest.md";
 const ENGINEER_REPORT_PATH = "logs/engineer-report-latest.md";
+const GPT_PM_REPORT_PATH = "logs/gpt-pm-report-latest.md";
 
 export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
   const snapshot = readMemorySnapshot(options.projectRoot);
@@ -41,13 +44,28 @@ export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
   const task = createTaskFromDecision(taskInput, decision);
   const nextAction = recommendNextAction(task, decision);
   const memoryFilesRead = [WORKFLOW_STATE_PATH, OPEN_QUESTIONS_PATH];
+  const generatedAt = options.generatedAt ?? new Date().toISOString();
+  const timestamp = toLogTimestamp(generatedAt);
+  const timestampedLoopLogPath = `logs/agent-loop-${timestamp}.md`;
+  const timestampedEngineerReportPath = `logs/engineer-report-${timestamp}.md`;
+  const timestampedGptPmReportPath = `logs/gpt-pm-report-${timestamp}.md`;
+  const openQuestions = extractOpenQuestions(snapshot.openQuestionsMarkdown);
 
   const engineerReportMarkdown = generateEngineerReport({
     task,
     decision,
     nextAction,
     memoryFilesRead,
-    generatedAt: options.generatedAt,
+    openQuestions,
+    generatedAt,
+  });
+  const gptPmReportMarkdown = generateGptPmReport({
+    task,
+    decision,
+    nextAction,
+    memoryFilesRead,
+    openQuestions,
+    generatedAt,
   });
   const parsedReport = parseEngineerReport(engineerReportMarkdown);
   const loopLog = generateLoopLog(task, parsedReport, nextAction);
@@ -56,13 +74,18 @@ export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
     decision,
     nextAction,
     memoryFilesRead,
-    generatedAt: options.generatedAt,
+    openQuestions,
+    generatedAt,
   });
 
   if (!options.dryRun) {
     appendFileSync(join(options.projectRoot, DECISION_LOG_PATH), `${decisionLogEntry}\n`, "utf8");
     writeFileSync(join(options.projectRoot, ENGINEER_REPORT_PATH), engineerReportMarkdown, "utf8");
+    writeFileSync(join(options.projectRoot, timestampedEngineerReportPath), engineerReportMarkdown, "utf8");
+    writeFileSync(join(options.projectRoot, GPT_PM_REPORT_PATH), gptPmReportMarkdown, "utf8");
+    writeFileSync(join(options.projectRoot, timestampedGptPmReportPath), gptPmReportMarkdown, "utf8");
     writeFileSync(join(options.projectRoot, LOOP_LOG_PATH), loopLog, "utf8");
+    writeFileSync(join(options.projectRoot, timestampedLoopLogPath), loopLog, "utf8");
   }
 
   return {
@@ -73,7 +96,9 @@ export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
     humanApprovalRequired: task.humanApprovalRequired,
     nextAction,
     engineerReport: engineerReportMarkdown,
+    gptPmReport: gptPmReportMarkdown,
     loopLog,
+    logPath: timestampedLoopLogPath,
   };
 }
 
@@ -82,6 +107,19 @@ export function readMemorySnapshot(projectRoot: string): MemorySnapshot {
     workflowStateMarkdown: readFileSync(join(projectRoot, WORKFLOW_STATE_PATH), "utf8"),
     openQuestionsMarkdown: readFileSync(join(projectRoot, OPEN_QUESTIONS_PATH), "utf8"),
   };
+}
+
+function extractOpenQuestions(markdown: string): string[] {
+  const pendingMatch = markdown.match(/##\s+Pending\s*\n([\s\S]*?)(?=\n##\s+|$)/i);
+  const pendingSection = pendingMatch?.[1] ?? "";
+  return pendingSection
+    .split("\n")
+    .map((line) => line.replace(/^\s*-\s*/, "").trim())
+    .filter((line) => line.length > 0 && line.toLowerCase() !== "none.");
+}
+
+function toLogTimestamp(value: string): string {
+  return value.replace(/[:.]/g, "-");
 }
 
 function isDirectRun(): boolean {
@@ -101,7 +139,9 @@ if (isDirectRun()) {
     `Human approval required: ${result.humanApprovalRequired ? "yes" : "no"}`,
     `Next action: ${result.nextAction}`,
     `Wrote: ${ENGINEER_REPORT_PATH}`,
+    `Wrote: ${GPT_PM_REPORT_PATH}`,
     `Wrote: ${LOOP_LOG_PATH}`,
+    `Wrote: ${result.logPath}`,
   ].join("\n");
 
   console.log(summary);
