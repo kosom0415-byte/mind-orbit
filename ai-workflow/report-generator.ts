@@ -29,6 +29,7 @@ export function generateEngineerReport(input: LoopRunReportInput): string {
     "",
     "### Files Changed",
     "- agent-memory/decision-log.md",
+    "- logs/engineer-report-latest.md",
     "- logs/agent-loop-latest.md",
     "",
     "### Validation",
@@ -93,7 +94,6 @@ export function generateLoopLog(task: WorkflowTask, report: EngineerReport, next
     "## Recommended Next Action",
     `- ${nextAction}`,
     "",
-    "## Codex Handoff",
     generateCodexHandoff(task, report),
   ].join("\n");
 }

@@ -1,0 +1,61 @@
+# AI Orchestration Log
+
+Generated: 2026-05-23T07:57:01.586Z
+
+## Queue
+- auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | queued | low | codex-engineer | attempts 0/2 | Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+
+## Reports
+- Report 1: - 요청 요약: Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+- Branch: dev
+- Generated: 2026-05-23T07:57:01.585Z
+
+## Next Suggested Task
+- Start queued task auto-use-ai-workflow-orchestrator-ts-as-the-local-mod: Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+
+
+## Recommended Next Action
+- Generate Codex handoff and proceed on dev with build validation.
+
+## Codex Handoff
+
+### Goal
+- Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+
+### Context
+- Generated from agent-memory/workflow-state.md
+
+### Scope
+- In:
+  - Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+- Out:
+  - Production changes without human approval
+  - API key/env automation
+
+### Must Preserve
+- App load stability
+- Memo input
+- Node rendering and dragging
+- Edge rendering
+- AI structure button
+- localStorage and Supabase storage compatibility
+
+### Allowed Decisions
+- Small dev-branch fixes
+- Documentation updates
+- Type-safe refactors that preserve behavior
+
+### Ask GPT Before
+- Product direction changes
+- Large UX effects
+- Data structure or migration decisions
+- More than two failed retries
+
+### Human Approval Required
+- none
+
+### Validation Required
+- npm run build
+
+### Commit Message
+- Use aiworkfloworchestratorts as the local model for future task queue handoff and report automation

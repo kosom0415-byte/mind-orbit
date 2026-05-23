@@ -1,5 +1,6 @@
 import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseEngineerReport } from "./orchestrator";
 import {
   createTaskFromDecision,
@@ -31,6 +32,7 @@ const WORKFLOW_STATE_PATH = "agent-memory/workflow-state.md";
 const OPEN_QUESTIONS_PATH = "agent-memory/open-questions.md";
 const DECISION_LOG_PATH = "agent-memory/decision-log.md";
 const LOOP_LOG_PATH = "logs/agent-loop-latest.md";
+const ENGINEER_REPORT_PATH = "logs/engineer-report-latest.md";
 
 export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
   const snapshot = readMemorySnapshot(options.projectRoot);
@@ -59,6 +61,7 @@ export function runMockAgentLoop(options: LoopRunnerOptions): LoopRunnerResult {
 
   if (!options.dryRun) {
     appendFileSync(join(options.projectRoot, DECISION_LOG_PATH), `${decisionLogEntry}\n`, "utf8");
+    writeFileSync(join(options.projectRoot, ENGINEER_REPORT_PATH), engineerReportMarkdown, "utf8");
     writeFileSync(join(options.projectRoot, LOOP_LOG_PATH), loopLog, "utf8");
   }
 
@@ -79,4 +82,27 @@ export function readMemorySnapshot(projectRoot: string): MemorySnapshot {
     workflowStateMarkdown: readFileSync(join(projectRoot, WORKFLOW_STATE_PATH), "utf8"),
     openQuestionsMarkdown: readFileSync(join(projectRoot, OPEN_QUESTIONS_PATH), "utf8"),
   };
+}
+
+function isDirectRun(): boolean {
+  const entrypoint = process.argv[1];
+  if (!entrypoint) return false;
+  return import.meta.url === pathToFileURL(entrypoint).href;
+}
+
+if (isDirectRun()) {
+  const result = runMockAgentLoop({ projectRoot: process.cwd() });
+  const summary = [
+    "AI agent loop completed.",
+    `Task: ${result.taskId}`,
+    `Status: ${result.status}`,
+    `Priority: ${result.priority}`,
+    `Severity: ${result.severity}`,
+    `Human approval required: ${result.humanApprovalRequired ? "yes" : "no"}`,
+    `Next action: ${result.nextAction}`,
+    `Wrote: ${ENGINEER_REPORT_PATH}`,
+    `Wrote: ${LOOP_LOG_PATH}`,
+  ].join("\n");
+
+  console.log(summary);
 }

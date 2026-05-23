@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
+    "agent:loop": "tsx ai-workflow/loop-runner.ts",
     "lint": "next lint"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.22.3",
     "typescript": "5.8.3"
   }
 }
