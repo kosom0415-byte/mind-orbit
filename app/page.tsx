@@ -275,13 +275,7 @@ const AI_ANALYSIS_MESSAGES = [
 const LOCAL_STORAGE_ESTIMATED_LIMIT = 5 * 1024 * 1024;
 const MAX_SNAPSHOTS = 3;
 const MAX_HISTORY = 5;
-const DEPTH_STRENGTH = 170;
-const CURVE_STRENGTH = 11;
-const FOCUS_ZOOM_STRENGTH = 120;
-const SPACE_TILT_STRENGTH = 3.6;
 const GAZE_PARALLAX_STRENGTH = 5.2;
-const PERSPECTIVE_DEPTH = 1180;
-const EDGE_DISTORTION_STRENGTH = 0.1;
 const AUTO_PAN_MAX_SPEED = 24;
 const AUTO_PAN_DEADZONE = 0.18;
 const AUTO_PAN_STRENGTH = 1;
@@ -1983,15 +1977,14 @@ export default function Home() {
           const angle = ((hashString(image.id) % 360) / 180) * Math.PI;
           const radius = node.level === "project" ? 240 : 150;
           const linkedNodeId = image.linkedNodeId ?? node.id;
-          const groupImageDelta = groupImageDragRef.current?.ids.has(linkedNodeId) ? groupImageDragRef.current : null;
 
           return {
             ...image,
             linkedNodeId,
             linkedLabel: node.label,
             level: node.level,
-            x: typeof image.x === "number" ? image.x + (groupImageDelta?.dx ?? 0) : node.x + Math.cos(angle) * (radius + index * 18),
-            y: typeof image.y === "number" ? image.y + (groupImageDelta?.dy ?? 0) : node.y + Math.sin(angle) * radius * 0.68,
+            x: typeof image.x === "number" ? image.x : node.x + Math.cos(angle) * (radius + index * 18),
+            y: typeof image.y === "number" ? image.y : node.y + Math.sin(angle) * radius * 0.68,
             z: image.z ?? 0,
           };
         }),
@@ -2005,15 +1998,14 @@ export default function Home() {
           const angle = ((hashString(link.id) % 360) / 180) * Math.PI;
           const radius = node.level === "project" ? 300 : 205;
           const linkedNodeId = link.linkedNodeId ?? node.id;
-          const groupLinkDelta = groupImageDragRef.current?.ids.has(linkedNodeId) ? groupImageDragRef.current : null;
 
           return {
             ...link,
             linkedNodeId,
             linkedLabel: node.label,
             level: node.level,
-            x: typeof link.x === "number" ? link.x + (groupLinkDelta?.dx ?? 0) : node.x + Math.cos(angle) * (radius + index * 22),
-            y: typeof link.y === "number" ? link.y + (groupLinkDelta?.dy ?? 0) : node.y + Math.sin(angle) * radius * 0.7,
+            x: typeof link.x === "number" ? link.x : node.x + Math.cos(angle) * (radius + index * 22),
+            y: typeof link.y === "number" ? link.y : node.y + Math.sin(angle) * radius * 0.7,
             z: link.z ?? 8,
           };
         }),
@@ -2640,17 +2632,16 @@ export default function Home() {
         }
       }
 
-      const cameraNow = cameraRef.current;
       const cameraTarget = targetCameraRef.current;
-      cameraNow.x += (cameraTarget.x - cameraNow.x) * 0.065;
-      cameraNow.y += (cameraTarget.y - cameraNow.y) * 0.065;
-      cameraNow.zoom += (cameraTarget.zoom - cameraNow.zoom) * 0.08;
+      const previousCamera = cameraRef.current;
+      const cameraNow = { ...cameraTarget };
+      cameraRef.current = cameraNow;
 
       frame += 1;
       const cameraMoving =
-        Math.abs(cameraTarget.x - cameraNow.x) > 0.02 ||
-        Math.abs(cameraTarget.y - cameraNow.y) > 0.02 ||
-        Math.abs(cameraTarget.zoom - cameraNow.zoom) > 0.001;
+        Math.abs(cameraNow.x - previousCamera.x) > 0.02 ||
+        Math.abs(cameraNow.y - previousCamera.y) > 0.02 ||
+        Math.abs(cameraNow.zoom - previousCamera.zoom) > 0.001;
       const publishNodes = frame % 3 === 0 || Boolean(dragNodeRef.current || dragImageRef.current || dragLinkRef.current);
 
       if (cameraMoving || publishNodes) setCamera({ ...cameraNow });
@@ -3678,17 +3669,8 @@ export default function Home() {
       className={`thought-space ${isPerformanceMode ? "performance-mode" : ""}`}
       ref={spaceRef}
       style={{
-        "--perspective-depth": `${PERSPECTIVE_DEPTH}px`,
-        "--space-tilt-x": `${clamp(camera.y / 1600, -1, 1) * SPACE_TILT_STRENGTH}deg`,
-        "--space-tilt-y": `${clamp(-camera.x / 1600, -1, 1) * SPACE_TILT_STRENGTH}deg`,
-        "--space-fog-tilt-x": `${clamp(camera.y / 1600, -1, 1) * SPACE_TILT_STRENGTH * 0.7}deg`,
-        "--space-fog-tilt-y": `${clamp(-camera.x / 1600, -1, 1) * SPACE_TILT_STRENGTH * 0.7}deg`,
-        "--space-link-tilt-x": `${clamp(camera.y / 1600, -1, 1) * SPACE_TILT_STRENGTH * 0.35}deg`,
-        "--space-link-tilt-y": `${clamp(-camera.x / 1600, -1, 1) * SPACE_TILT_STRENGTH * 0.35}deg`,
         "--gaze-x": `${gaze.x * GAZE_PARALLAX_STRENGTH}px`,
         "--gaze-y": `${gaze.y * GAZE_PARALLAX_STRENGTH}px`,
-        "--gaze-rotate-x": `${-gaze.y * GAZE_PARALLAX_STRENGTH * 0.42}deg`,
-        "--gaze-rotate-y": `${gaze.x * GAZE_PARALLAX_STRENGTH * 0.52}deg`,
         "--gaze-bg-x": `${gaze.x * GAZE_PARALLAX_STRENGTH * 0.55}px`,
         "--gaze-bg-y": `${gaze.y * GAZE_PARALLAX_STRENGTH * 0.55}px`,
       } as React.CSSProperties}
