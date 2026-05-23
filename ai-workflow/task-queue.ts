@@ -6,6 +6,7 @@ import { generateCodexHandoff } from "./orchestrator";
 import { createTaskFromDecision, decidePriority, extractNextTaskInput, recommendNextAction } from "./priority-engine";
 import { generateGptPmReport } from "./report-generator";
 import { readMemorySnapshot } from "./loop-runner";
+import { buildCodebaseIndex } from "./codebase-index";
 
 type QueueStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "human_approval_required";
 
@@ -23,6 +24,7 @@ interface QueueState {
   tasks: QueueTask[];
   failedHistory: QueueTask[];
   nextAction: string;
+  codebaseImpact?: CodebaseImpact;
 }
 
 interface QueueRunResult {
@@ -30,6 +32,12 @@ interface QueueRunResult {
   state: QueueState;
   markdown: string;
   gptPmReport: string;
+}
+
+interface CodebaseImpact {
+  relatedFiles: string[];
+  riskFiles: string[];
+  productionRisk: string;
 }
 
 const TASK_QUEUE_PATH = "logs/task-queue.md";
@@ -92,12 +100,14 @@ export function runTaskQueue(projectRoot: string): QueueRunResult {
 
   const failedHistory = collectFailedHistory(previousState.failedHistory, normalizedTasks);
   const nextAction = recommendQueueNextAction(normalizedTasks);
+  const codebaseImpact = calculateCodebaseImpact(projectRoot, selectedTask);
   const state: QueueState = {
     version: 1,
     generatedAt,
     tasks: sortTasks(normalizedTasks),
     failedHistory,
     nextAction,
+    codebaseImpact,
   };
   const markdown = generateQueueMarkdown(state);
   const gptPmReport = generateQueueGptPmReport(state, selectedTask);
@@ -117,6 +127,7 @@ function readQueueState(projectRoot: string): QueueState {
       tasks: [],
       failedHistory: [],
       nextAction: "Create initial task queue from agent memory.",
+      codebaseImpact: undefined,
     };
   }
 
@@ -129,6 +140,7 @@ function readQueueState(projectRoot: string): QueueState {
       tasks: [],
       failedHistory: [],
       nextAction: "Rebuild task queue from agent memory.",
+      codebaseImpact: undefined,
     };
   }
 
@@ -141,6 +153,7 @@ function readQueueState(projectRoot: string): QueueState {
       tasks: [],
       failedHistory: [],
       nextAction: "Queue state parse failed; rebuild from agent memory.",
+      codebaseImpact: undefined,
     };
   }
 }
@@ -266,6 +279,15 @@ function generateQueueMarkdown(state: QueueState): string {
     "## Recent Failed Task History",
     renderTaskTable(state.failedHistory),
     "",
+    "## Codebase Impact",
+    `- Production risk: ${state.codebaseImpact?.productionRisk ?? "unknown"}`,
+    "- Related files:",
+    ...(state.codebaseImpact?.relatedFiles.length
+      ? state.codebaseImpact.relatedFiles.map((file) => `  - ${file}`)
+      : ["  - none"]),
+    "- Risk files:",
+    ...(state.codebaseImpact?.riskFiles.length ? state.codebaseImpact.riskFiles.map((file) => `  - ${file}`) : ["  - none"]),
+    "",
     "## Safety",
     "- Production deploy: not automated",
     "- env/API key access: not used",
@@ -304,6 +326,15 @@ function generateQueueGptPmReport(state: QueueState, selectedTask?: QueueTask): 
     "### GPT PM Next-Step Recommendation",
     `- ${state.nextAction}`,
     "",
+    "### Codebase Impact",
+    `- Production risk: ${state.codebaseImpact?.productionRisk ?? "unknown"}`,
+    "- Related files:",
+    ...(state.codebaseImpact?.relatedFiles.length
+      ? state.codebaseImpact.relatedFiles.map((file) => `  - ${file}`)
+      : ["  - none"]),
+    "- Risk files:",
+    ...(state.codebaseImpact?.riskFiles.length ? state.codebaseImpact.riskFiles.map((file) => `  - ${file}`) : ["  - none"]),
+    "",
     "### Next Priority Task Proposal",
     selectedTask ? generateCodexHandoff(selectedTask).split("\n").slice(0, 18).join("\n") : "- Ask GPT PM Agent for a new task.",
     "",
@@ -317,6 +348,30 @@ function generateQueueGptPmReport(state: QueueState, selectedTask?: QueueTask): 
     "- Queue runner is mock-only and writes markdown logs only.",
     "- Production deploy, env/API key access, and OpenAI API calls are disabled.",
   ].join("\n");
+}
+
+function calculateCodebaseImpact(projectRoot: string, selectedTask?: QueueTask): CodebaseImpact {
+  const index = buildCodebaseIndex(projectRoot);
+  const taskText = `${selectedTask?.title ?? ""} ${selectedTask?.goal ?? ""}`.toLowerCase();
+  const keywordMatches = index.files
+    .filter((file) => {
+      const path = file.path.toLowerCase();
+      return path
+        .split(/[\/.-]/)
+        .filter((part) => part.length > 3)
+        .some((part) => taskText.includes(part));
+    })
+    .map((file) => file.path);
+
+  const relatedFiles = [...new Set([...keywordMatches, ...index.highRenderImpact.slice(0, 5).map((file) => file.path)])].slice(0, 8);
+  const riskFiles = index.productionRiskFiles.slice(0, 8).map((file) => file.path);
+  const productionRisk = selectedTask?.humanApprovalRequired
+    ? "human approval required"
+    : relatedFiles.some((file) => riskFiles.includes(file))
+      ? "medium"
+      : "low";
+
+  return { relatedFiles, riskFiles, productionRisk };
 }
 
 function renderTaskSection(title: string, tasks: QueueTask[], status: QueueStatus): string {

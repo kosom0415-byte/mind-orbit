@@ -1,6 +1,6 @@
 # Autonomous Task Queue
 
-Generated: 2026-05-23T08:15:31.463Z
+Generated: 2026-05-23T08:46:51.648Z
 
 ## Summary
 - Pending: 0
@@ -30,6 +30,24 @@ Generated: 2026-05-23T08:15:31.463Z
 ## Recent Failed Task History
 - none
 
+## Codebase Impact
+- Production risk: medium
+- Related files:
+  - app/page.tsx
+  - app/components/EdgeLayer.tsx
+  - app/components/NodeLayer.tsx
+  - lib/mind/types.ts
+  - app/globals.css
+- Risk files:
+  - app/page.tsx
+  - app/globals.css
+  - app/components/EdgeLayer.tsx
+  - app/components/NodeLayer.tsx
+  - hooks/useGestures.ts
+  - hooks/useInteractionState.ts
+  - hooks/useSelection.ts
+  - hooks/useViewport.ts
+
 ## Safety
 - Production deploy: not automated
 - env/API key access: not used
@@ -39,7 +57,7 @@ Generated: 2026-05-23T08:15:31.463Z
 <!-- task-queue-state
 {
   "version": 1,
-  "generatedAt": "2026-05-23T08:15:31.463Z",
+  "generatedAt": "2026-05-23T08:46:51.648Z",
   "tasks": [
     {
       "id": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
@@ -67,6 +85,26 @@ Generated: 2026-05-23T08:15:31.463Z
     }
   ],
   "failedHistory": [],
-  "nextAction": "Queue is clear. Ask GPT PM Agent for the next prioritized task."
+  "nextAction": "Queue is clear. Ask GPT PM Agent for the next prioritized task.",
+  "codebaseImpact": {
+    "relatedFiles": [
+      "app/page.tsx",
+      "app/components/EdgeLayer.tsx",
+      "app/components/NodeLayer.tsx",
+      "lib/mind/types.ts",
+      "app/globals.css"
+    ],
+    "riskFiles": [
+      "app/page.tsx",
+      "app/globals.css",
+      "app/components/EdgeLayer.tsx",
+      "app/components/NodeLayer.tsx",
+      "hooks/useGestures.ts",
+      "hooks/useInteractionState.ts",
+      "hooks/useSelection.ts",
+      "hooks/useViewport.ts"
+    ],
+    "productionRisk": "medium"
+  }
 }
 -->
