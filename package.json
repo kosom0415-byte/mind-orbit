@@ -8,6 +8,7 @@
     "start": "next start",
     "agent:loop": "tsx ai-workflow/loop-runner.ts",
     "agent:report": "tsx ai-workflow/report-generator.ts",
+    "agent:watch": "tsx ai-workflow/agent-watch.ts",
     "lint": "next lint"
   },
   "dependencies": {
