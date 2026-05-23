@@ -100,15 +100,6 @@ function EdgeLayer({
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-        <filter id="active-edge-glow" x="-120%" y="-120%" width="240%" height="240%">
-          <feFlood floodColor="rgba(46, 128, 255, 0.18)" result="glowColor" />
-          <feComposite in="glowColor" in2="SourceGraphic" operator="in" result="glowMask" />
-          <feGaussianBlur in="glowMask" stdDeviation="4" result="glowBlur" />
-          <feMerge>
-            <feMergeNode in="glowBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
       {visibleGraphEdges.map((edge) => {
         const source = simNodeMap.get(edge.source);
@@ -127,8 +118,8 @@ function EdgeLayer({
         const project = source.level === "project" ? source.project : target.project;
         const baseColor = projectLineColor(project, edge.id, 1);
         const stroke = edgeStrokeColor(edge, opacity, baseColor);
-        const strokeWidth = edgeStrokeWidth(edge, Boolean(active), edgeLineWidth(source, target, Boolean(active))) + (active ? 0.4 : 0);
-        const filter = active ? "url(#active-edge-glow)" : isSemanticEdge(edge) ? "url(#semantic-glow)" : undefined;
+        const strokeWidth = edgeStrokeWidth(edge, Boolean(active), edgeLineWidth(source, target, Boolean(active)));
+        const filter = isSemanticEdge(edge) ? "url(#semantic-glow)" : undefined;
         const className = [`thought-link`, active ? "thought-link-active" : null, isHierarchyEdge(edge) ? "thought-link--hierarchy" : null, isSemanticEdge(edge) ? "thought-link--semantic" : null]
           .filter(Boolean)
           .join(" ");

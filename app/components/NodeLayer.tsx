@@ -167,7 +167,6 @@ function NodeLayer({
         const ancestorIndex = selectedAncestorTrail.indexOf(node.id);
         const ancestor = ancestorIndex >= 0;
         const distance = Math.hypot(node.x - camera.x, node.y - camera.y);
-        const nodeDepth = Math.min(Math.max(distance / 1700, 0), 1);
         const selected = selectedNodeId === node.id;
         const multiSelected = selectedNodeIdSet.has(node.id);
         const hovered = hoveredNodeId === node.id;
@@ -176,28 +175,10 @@ function NodeLayer({
           ? innerDimmed && !multiSelected
           : Boolean((selectedNodeId && !selectedNeighbors.has(node.id) && !ancestor) || (selectedNodeIds.length > 0 && !multiSelected));
         const neighbor = selectedNodeId ? selectedNeighbors.has(node.id) : false;
-        const curveX = Math.min(1, Math.max(-1, (position.x - viewport.width / 2) / (viewport.width / 2)));
-        const curveY = Math.min(1, Math.max(-1, (position.y - viewport.height / 2) / (viewport.height / 2)));
-        const edgeDepth = (Math.abs(curveX) + Math.abs(curveY)) * -1180 * 0.42;
-        const focusDepth = selected
-          ? 140 * 1.16
-          : ancestor
-            ? 120 * 0.7
-            : neighbor
-              ? 120 * 0.38
-              : 0;
-        const zDepth = edgeDepth + focusDepth - Math.min(Math.max(distance / 16, 0), 980);
-        const ancestorOpacity = ancestor ? Math.min(Math.max(0.72 - ancestorIndex * 0.14, 0.32), 0.72) : 0;
+        const ancestorOpacity = ancestor ? Math.min(Math.max(0.7 - ancestorIndex * 0.15, 0.32), 0.7) : 0;
         const ancestorBlur = isPerformanceMode ? 0 : ancestor ? Math.min(Math.max(0.25 + ancestorIndex * 0.12, 0.25), 0.5) : 0;
-        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : Math.min(Math.max(1 - nodeDepth * 0.44 + zDepth / 1400, 0.38), 0.96);
-        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : Math.min(Math.max(nodeDepth * 0.48 - zDepth / 1200, 0), 0.34);
-        const textColor = selected || hovered
-          ? "#030303"
-          : `rgba(32, 38, 46, ${Math.max(0.58, 0.92 - nodeDepth * 0.4)})`;
-        const hoverLift = hovered && !selected ? 18 : 0;
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
-        const curveRotateY = -curveX * 3.6 + gaze.x * 5.2 * 0.8;
-        const curveRotateX = curveY * 3.6 * 0.72 - gaze.y * 5.2 * 0.6;
+        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : Math.min(Math.max(1 - distance / 1900, 0.46), 0.96);
+        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : Math.min(Math.max(distance / 1600, 0), 0.35);
         const scale =
           (selected
             ? 1.72
@@ -216,9 +197,7 @@ function NodeLayer({
                     : node.level === "category"
                       ? 0.72
                       : 0.6) *
-          (ancestor && !selected ? 1 : Math.min(Math.max(1 + zDepth / 900, 0.8), 1.16)) *
-          (1 - edgeAmount * 0.1) *
-          (hovered && !selected ? 1.1 : 1) *
+          (hovered && !selected ? 1.08 : 1) *
           camera.zoom;
 
         const activateNode = (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
@@ -287,9 +266,8 @@ function NodeLayer({
               top: position.y,
               zIndex: selected ? 32 : multiSelected ? 28 : ancestor ? 30 - ancestorIndex : neighbor ? 18 : undefined,
               opacity: dimmed ? undefined : neighbor && !selected ? Math.max(depthOpacity, 0.58) : depthOpacity,
-              color: textColor,
               filter: dimmed || depthBlur <= 0 ? undefined : `blur(${depthBlur}px)`,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * 6.2 + curveX * 3.8}px, ${gaze.y * 6.2 + curveY * 2.8}px, ${zDepth + hoverLift}px) rotateX(${curveRotateX}deg) rotateY(${curveRotateY}deg) scale(${scale})`,
+              transform: `translate(-50%, -50%) scale(${scale})`,
             }}
           >
             {editingNodeId === node.id ? (
@@ -362,9 +340,6 @@ function NodeLayer({
         const linkedNode = visibleNodes.find((node) => node.id === image.linkedNodeId);
         const innerHidden = Boolean(currentPocketId && image.linkedNodeId && !innerSpaceNodeIds.has(image.linkedNodeId));
         const distance = Math.hypot(image.x - camera.x, image.y - camera.y);
-        const curveX = Math.min(1, Math.max(-1, (position.x - viewport.width / 2) / (viewport.width / 2)));
-        const curveY = Math.min(1, Math.max(-1, (position.y - viewport.height / 2) / (viewport.height / 2)));
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
         const depthState = selected || (selectedNodeId && image.linkedNodeId === selectedNodeId)
           ? { opacity: 1, scale: selected ? 1.34 : 1 }
           : linkedNode && selectedNode && (selectedNeighbors.has(linkedNode.id) || selectedAncestors.has(linkedNode.id) || linkedNode.parentId === selectedNode.id || selectedNode.parentId === linkedNode.id || linkedNode.parentId === selectedNode.parentId)
@@ -375,10 +350,7 @@ function NodeLayer({
                 ? { opacity: 0.32, scale: 0.72 }
                 : { opacity: Math.min(Math.max(1 - distance / 2100, 0.54), 0.9), scale: image.level === "project" ? 1 : 0.84 };
         const opacity = innerHidden ? 0.16 : hovered && !selected ? Math.min(depthState.opacity + 0.25, 1) : depthState.opacity;
-        const scale = (depthState.scale + (hovered && !selected ? 0.08 : 0)) * (1 - edgeAmount * 0.1) * camera.zoom;
-        const zDepth = selected ? 180 : hovered ? 82 : image.z ?? 0;
-        const rotateX = curveY * 3.6 * 0.45 - gaze.y * 5.2 * 0.45;
-        const rotateY = -curveX * 3.6 * 0.7 + gaze.x * 5.2 * 0.65;
+        const scale = (depthState.scale + (hovered && !selected ? 0.08 : 0)) * camera.zoom;
 
         return (
           <figure
@@ -432,7 +404,7 @@ function NodeLayer({
               top: position.y,
               opacity,
               zIndex: selected ? 31 : hovered ? 22 : 10,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * 5.2 * 0.9}px, ${gaze.y * 5.2 * 0.72}px, ${zDepth}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotate(${[-5, 3, -2, 6, -7, 4][index % 6]}deg) scale(${scale})`,
+              transform: `translate(-50%, -50%) rotate(${[-5, 3, -2, 6, -7, 4][index % 6]}deg) scale(${scale})`,
             }}
           >
             {image.src ? (
@@ -457,14 +429,8 @@ function NodeLayer({
         const hovered = hoveredLinkId === link.id;
         const innerHidden = Boolean(currentPocketId && !innerSpaceNodeIds.has(link.linkedNodeId));
         const distance = Math.hypot(link.x - camera.x, link.y - camera.y);
-        const curveX = Math.min(1, Math.max(-1, (position.x - viewport.width / 2) / (viewport.width / 2)));
-        const curveY = Math.min(1, Math.max(-1, (position.y - viewport.height / 2) / (viewport.height / 2)));
-        const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
         const opacity = innerHidden ? 0.16 : selected || hovered ? 1 : Math.min(Math.max(1 - distance / 2100, 0.54), 0.94);
-        const scale = (selected ? 1.25 : hovered ? 1.08 : 0.86) * (1 - edgeAmount * 0.1) * camera.zoom;
-        const zDepth = selected ? 165 : hovered ? 72 : link.z ?? 0;
-        const rotateX = curveY * 3.6 * 0.38 - gaze.y * 5.2 * 0.36;
-        const rotateY = -curveX * 3.6 * 0.62 + gaze.x * 5.2 * 0.52;
+        const scale = (selected ? 1.25 : hovered ? 1.08 : 0.86) * camera.zoom;
 
         return (
           <figure
@@ -519,7 +485,7 @@ function NodeLayer({
               top: position.y,
               opacity,
               zIndex: selected ? 31 : hovered ? 22 : 10,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * 5.2 * 0.82}px, ${gaze.y * 5.2 * 0.64}px, ${zDepth}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotate(${[-3, 2, -1, 4][index % 4]}deg) scale(${scale})`,
+              transform: `translate(-50%, -50%) rotate(${[-3, 2, -1, 4][index % 4]}deg) scale(${scale})`,
             }}
           >
             {link.thumbnailUrl ? (
