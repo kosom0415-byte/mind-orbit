@@ -875,6 +875,44 @@ button,
   animation: analysis-status-in 260ms ease both;
 }
 
+.ai-analysis-status-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.72);
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.analysis-loading-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 9999px;
+  background: #ff3b30;
+  animation: analysis-loading-pulse 0.9s ease-in-out infinite;
+}
+
+.button-loading-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes analysis-loading-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(0.92);
+  }
+}
+
 .ai-analysis-status span,
 .ai-analysis-status strong,
 .ai-analysis-status small {

@@ -3885,7 +3885,10 @@ export default function Home() {
         />
         {isAiAnalyzing && (
           <div className="ai-analysis-status" aria-live="polite">
-            <span>{inputMode === "question" ? "AI가 Thought Pocket을 분석 중입니다..." : "AI가 프로젝트 구조를 분석 중입니다..."}</span>
+            <p className="ai-analysis-status-line">
+              <span className="analysis-loading-dot" aria-hidden="true" />
+              <span>{inputMode === "question" ? "AI가 Thought Pocket을 분석 중입니다..." : "AI가 프로젝트 구조를 분석 중입니다..."}</span>
+            </p>
             <strong>{AI_ANALYSIS_MESSAGES[aiProgressIndex]}</strong>
             <small>{inputMode === "question" ? "질문의 배경과 다음 사고 흐름을 정리하고 있습니다..." : "문맥 관계와 키워드 계층을 정리하고 있습니다..."}</small>
           </div>
@@ -3954,7 +3957,14 @@ export default function Home() {
           onClick={analyzeWithAi}
           type="button"
         >
-          {isAiAnalyzing ? "✦ 구조 분석 중..." : "AI 구조화"}
+          {isAiAnalyzing ? (
+            <span className="button-loading-label">
+              <span className="analysis-loading-dot" aria-hidden="true" />
+              <span>✦ 구조 분석 중...</span>
+            </span>
+          ) : (
+            "AI 구조화"
+          )}
         </button>
         {analysisPreview && (
           <button
