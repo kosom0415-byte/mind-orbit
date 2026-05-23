@@ -1,6 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readdirSync, statSync, watch } from "node:fs";
 import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { runGptCodexBridge } from "./gpt-codex-bridge";
 import { runMockAgentLoop } from "./loop-runner";
 
 interface WatchRunnerOptions {
@@ -9,6 +10,7 @@ interface WatchRunnerOptions {
   minRunIntervalMs?: number;
   maxRunsPerMinute?: number;
   once?: boolean;
+  withBridge?: boolean;
 }
 
 interface WatchState {
@@ -43,12 +45,13 @@ export function startAgentWatch(options: WatchRunnerOptions): () => void {
   appendWatchEvent(projectRoot, "watch_started", [
     `Watching: ${AGENT_MEMORY_DIR}/*.md`,
     `Debounce: ${debounceMs}ms`,
+    `Bridge trigger: ${options.withBridge ? "enabled" : "disabled"}`,
     "Production safe mode: enabled",
     "External API calls: disabled",
   ]);
 
   if (options.once) {
-    runLoopFromWatch(projectRoot, state, "manual_once", minRunIntervalMs, maxRunsPerMinute);
+    runLoopFromWatch(projectRoot, state, "manual_once", minRunIntervalMs, maxRunsPerMinute, Boolean(options.withBridge));
     return () => undefined;
   }
 
@@ -59,7 +62,7 @@ export function startAgentWatch(options: WatchRunnerOptions): () => void {
     if (!shouldReactToChange(memoryDir, changedFile, state)) return;
 
     appendWatchEvent(projectRoot, "change_detected", [`File: ${AGENT_MEMORY_DIR}/${changedFile}`]);
-    scheduleLoopRun(projectRoot, state, changedFile, debounceMs, minRunIntervalMs, maxRunsPerMinute);
+    scheduleLoopRun(projectRoot, state, changedFile, debounceMs, minRunIntervalMs, maxRunsPerMinute, Boolean(options.withBridge));
   });
 
   return () => {
@@ -76,12 +79,13 @@ function scheduleLoopRun(
   debounceMs: number,
   minRunIntervalMs: number,
   maxRunsPerMinute: number,
+  withBridge: boolean,
 ): void {
   if (state.pendingTimer) clearTimeout(state.pendingTimer);
 
   state.pendingTimer = setTimeout(() => {
     state.pendingTimer = null;
-    runLoopFromWatch(projectRoot, state, reason, minRunIntervalMs, maxRunsPerMinute);
+    runLoopFromWatch(projectRoot, state, reason, minRunIntervalMs, maxRunsPerMinute, withBridge);
   }, debounceMs);
 }
 
@@ -91,6 +95,7 @@ function runLoopFromWatch(
   reason: string,
   minRunIntervalMs: number,
   maxRunsPerMinute: number,
+  withBridge: boolean,
 ): void {
   const now = Date.now();
   state.runHistory = state.runHistory.filter((timestamp) => now - timestamp < 60_000);
@@ -119,6 +124,7 @@ function runLoopFromWatch(
 
   try {
     const result = runMockAgentLoop({ projectRoot });
+    const bridgeResult = withBridge ? runGptCodexBridge(projectRoot) : undefined;
     state.lastRunAt = Date.now();
     state.runHistory.push(state.lastRunAt);
     appendWatchEvent(projectRoot, "loop_completed", [
@@ -128,6 +134,8 @@ function runLoopFromWatch(
       `Severity: ${result.severity}`,
       `Human approval required: ${result.humanApprovalRequired ? "yes" : "no"}`,
       `Log: ${result.logPath}`,
+      `Bridge: ${bridgeResult ? "completed" : "skipped"}`,
+      ...(bridgeResult ? [`Bridge questions: ${bridgeResult.questions.length}`, `Bridge approvals: ${bridgeResult.humanApprovals.length}`] : []),
     ]);
   } catch (error) {
     appendWatchEvent(projectRoot, "loop_failed", [
@@ -192,10 +200,12 @@ function isDirectRun(): boolean {
 
 if (isDirectRun()) {
   const once = process.argv.includes("--once");
-  startAgentWatch({ projectRoot: process.cwd(), once });
+  const withBridge = process.argv.includes("--with-bridge");
+  startAgentWatch({ projectRoot: process.cwd(), once, withBridge });
 
   if (!once) {
     console.log("Agent watch started. Watching agent-memory/*.md.");
+    console.log(`Bridge trigger: ${withBridge ? "enabled" : "disabled"}.`);
     console.log("Mock mode enabled. Production actions and env/API key access are disabled.");
   }
 }

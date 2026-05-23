@@ -10,6 +10,7 @@
     "agent:index": "tsx ai-workflow/codebase-index.ts",
     "agent:memory": "tsx ai-workflow/memory-compressor.ts",
     "agent:queue": "tsx ai-workflow/task-queue.ts",
+    "agent:bridge": "tsx ai-workflow/gpt-codex-bridge.ts",
     "agent:report": "tsx ai-workflow/report-generator.ts",
     "agent:self-heal": "tsx ai-workflow/self-heal-engine.ts",
     "agent:watch": "tsx ai-workflow/agent-watch.ts",

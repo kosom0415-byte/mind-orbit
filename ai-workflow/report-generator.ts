@@ -148,7 +148,29 @@ function isDirectRun(): boolean {
 if (isDirectRun()) {
   const state = createMockWorkflowState();
   const report = generateMarkdownLog(state);
+  const task = state.tasks[0];
+  const generatedAt = new Date().toISOString();
+  const loopInput: LoopRunReportInput = {
+    task,
+    decision: {
+      severity: "s3-minor",
+      priority: task.priority,
+      status: task.status,
+      humanApprovalRequired: task.humanApprovalRequired,
+      nextAction: "Use agent:loop for live memory-based task selection.",
+    },
+    nextAction: "Use agent:loop for live memory-based task selection.",
+    memoryFilesRead: ["agent-memory/workflow-state.md", "agent-memory/open-questions.md"],
+    openQuestions: [],
+    generatedAt,
+  };
   const outputPath = join(process.cwd(), "logs", "agent-report-latest.md");
+  const engineerPath = join(process.cwd(), "logs", "engineer-report-latest.md");
+  const gptPmPath = join(process.cwd(), "logs", "gpt-pm-report-latest.md");
   writeFileSync(outputPath, report, "utf8");
+  writeFileSync(engineerPath, generateEngineerReport(loopInput), "utf8");
+  writeFileSync(gptPmPath, generateGptPmReport(loopInput), "utf8");
   console.log(`Agent report generated: ${outputPath}`);
+  console.log(`Engineer report generated: ${engineerPath}`);
+  console.log(`GPT PM report generated: ${gptPmPath}`);
 }
