@@ -167,6 +167,7 @@ function NodeLayer({
         const ancestorIndex = selectedAncestorTrail.indexOf(node.id);
         const ancestor = ancestorIndex >= 0;
         const distance = Math.hypot(node.x - camera.x, node.y - camera.y);
+        const nodeDepth = Math.min(Math.max(distance / 1700, 0), 1);
         const selected = selectedNodeId === node.id;
         const multiSelected = selectedNodeIdSet.has(node.id);
         const hovered = hoveredNodeId === node.id;
@@ -179,17 +180,21 @@ function NodeLayer({
         const curveY = Math.min(1, Math.max(-1, (position.y - viewport.height / 2) / (viewport.height / 2)));
         const edgeDepth = (Math.abs(curveX) + Math.abs(curveY)) * -1180 * 0.42;
         const focusDepth = selected
-          ? 120 * 1.32
+          ? 140 * 1.16
           : ancestor
-            ? 120 * 0.62
+            ? 120 * 0.7
             : neighbor
-              ? 120 * 0.32
+              ? 120 * 0.38
               : 0;
-        const zDepth = edgeDepth + focusDepth - Math.min(Math.max(distance / 18, 0), 1180);
-        const ancestorOpacity = ancestor ? Math.min(Math.max(0.7 - ancestorIndex * 0.15, 0.32), 0.7) : 0;
+        const zDepth = edgeDepth + focusDepth - Math.min(Math.max(distance / 16, 0), 980);
+        const ancestorOpacity = ancestor ? Math.min(Math.max(0.72 - ancestorIndex * 0.14, 0.32), 0.72) : 0;
         const ancestorBlur = isPerformanceMode ? 0 : ancestor ? Math.min(Math.max(0.25 + ancestorIndex * 0.12, 0.25), 0.5) : 0;
-        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : Math.min(Math.max(1 - distance / 1900 + zDepth / 1400, 0.46), 0.96);
-        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : Math.min(Math.max(distance / 1600 - zDepth / 900, 0), 0.35);
+        const depthOpacity = selected || multiSelected || hovered ? 1 : ancestor ? ancestorOpacity : Math.min(Math.max(1 - nodeDepth * 0.44 + zDepth / 1400, 0.38), 0.96);
+        const depthBlur = isPerformanceMode || selected || multiSelected || hovered ? 0 : ancestor ? ancestorBlur : Math.min(Math.max(nodeDepth * 0.48 - zDepth / 1200, 0), 0.34);
+        const textColor = selected || hovered
+          ? "#030303"
+          : `rgba(32, 38, 46, ${Math.max(0.58, 0.92 - nodeDepth * 0.4)})`;
+        const hoverLift = hovered && !selected ? 18 : 0;
         const edgeAmount = Math.min(1, Math.hypot(curveX, curveY));
         const curveRotateY = -curveX * 3.6 + gaze.x * 5.2 * 0.8;
         const curveRotateX = curveY * 3.6 * 0.72 - gaze.y * 5.2 * 0.6;
@@ -211,9 +216,9 @@ function NodeLayer({
                     : node.level === "category"
                       ? 0.72
                       : 0.6) *
-          (ancestor && !selected ? 1 : Math.min(Math.max(1 + zDepth / 900, 0.78), 1.16)) *
+          (ancestor && !selected ? 1 : Math.min(Math.max(1 + zDepth / 900, 0.8), 1.16)) *
           (1 - edgeAmount * 0.1) *
-          (hovered && !selected ? 1.08 : 1) *
+          (hovered && !selected ? 1.1 : 1) *
           camera.zoom;
 
         const activateNode = (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => {
@@ -282,8 +287,9 @@ function NodeLayer({
               top: position.y,
               zIndex: selected ? 32 : multiSelected ? 28 : ancestor ? 30 - ancestorIndex : neighbor ? 18 : undefined,
               opacity: dimmed ? undefined : neighbor && !selected ? Math.max(depthOpacity, 0.58) : depthOpacity,
+              color: textColor,
               filter: dimmed || depthBlur <= 0 ? undefined : `blur(${depthBlur}px)`,
-              transform: `translate(-50%, -50%) translate3d(${gaze.x * 5.2 * 0.72}px, ${gaze.y * 5.2 * 0.58}px, ${zDepth}px) rotateX(${curveRotateX}deg) rotateY(${curveRotateY}deg) scale(${scale})`,
+              transform: `translate(-50%, -50%) translate3d(${gaze.x * 6.2 + curveX * 3.8}px, ${gaze.y * 6.2 + curveY * 2.8}px, ${zDepth + hoverLift}px) rotateX(${curveRotateX}deg) rotateY(${curveRotateY}deg) scale(${scale})`,
             }}
           >
             {editingNodeId === node.id ? (

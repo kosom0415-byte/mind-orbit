@@ -1768,23 +1768,25 @@ export default function Home() {
     [edges, generatedEdges, repairedEdges],
   );
   const modeLabel = currentPocketId ? "Inner Space" : editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
-  const uiLayerEvents = {
-    onPointerEnter: () => {
-      pointerOverUiRef.current = true;
-      autoPanCursorRef.current.active = false;
-    },
-    onPointerLeave: () => {
-      pointerOverUiRef.current = false;
-    },
-  };
-  const enterInteractionSafeZone = () => {
+  const onUiPointerEnter = useCallback(() => {
+    pointerOverUiRef.current = true;
+    autoPanCursorRef.current.active = false;
+  }, []);
+  const onUiPointerLeave = useCallback(() => {
+    pointerOverUiRef.current = false;
+  }, []);
+  const uiLayerEvents = useMemo(
+    () => ({ onPointerEnter: onUiPointerEnter, onPointerLeave: onUiPointerLeave }),
+    [onUiPointerEnter, onUiPointerLeave],
+  );
+  const enterInteractionSafeZone = useCallback(() => {
     pointerOverUiRef.current = true;
     autoPanCursorRef.current.active = false;
     pendingGazeRef.current = { x: 0, y: 0 };
-  };
-  const leaveInteractionSafeZone = () => {
+  }, []);
+  const leaveInteractionSafeZone = useCallback(() => {
     pointerOverUiRef.current = false;
-  };
+  }, []);
 
   useEffect(() => {
     autoPanBlockedRef.current = Boolean(previewImage || linkModalNodeId || editingNodeId || detailEditMode);
@@ -1826,6 +1828,51 @@ export default function Home() {
   );
   const renderPerfRef = useRef({ count: 0, lastLog: performance.now() });
   renderPerfRef.current.count += 1;
+
+  const addChildNode = useCallback(
+    (parent: { id: string; level: NodeLevel; x: number; y: number; memo: { id: string }; color?: string }) => {
+      const childLevel: NodeLevel = parent.level === "project" ? "category" : "detail";
+      const childId = `${parent.memo.id}-manual-${crypto.randomUUID()}`;
+      const angle = ((hashString(childId) % 360) / 180) * Math.PI;
+      const distance = parent.level === "project" ? 230 : 150;
+      const x = parent.x + Math.cos(angle) * distance;
+      const y = parent.y + Math.sin(angle) * distance * 0.72;
+
+      setMemos((current) =>
+        current.map((memo) =>
+          memo.id === parent.memo.id
+            ? {
+                ...memo,
+                manualNodes: [
+                  ...(memo.manualNodes ?? []),
+                  {
+                    id: childId,
+                    label: "새 생각",
+                    parentId: parent.id,
+                    level: childLevel,
+                    color: parent.color,
+                  },
+                ],
+                updatedAt: new Date().toISOString(),
+              }
+            : memo,
+        ),
+      );
+      setNodeOverrides((current) => ({
+        ...current,
+        [childId]: {
+          label: "새 생각",
+          color: parent.color,
+          x,
+          y,
+        },
+      }));
+      setSelectedMemoId(parent.memo.id);
+      setSelectedNodeId(childId);
+      setEditingNodeId(childId);
+    },
+    [],
+  );
 
   const {
     selectedNodeIds,
@@ -2019,6 +2066,20 @@ export default function Home() {
         }),
       ),
     [nodeOverrides, visibleNodes],
+  );
+
+  const worldFromPointer = useCallback(
+    (clientX: number, clientY: number) => {
+      const rect = spaceRef.current?.getBoundingClientRect();
+      const x = clientX - (rect?.left ?? 0);
+      const y = clientY - (rect?.top ?? 0);
+
+      return {
+        x: (x - viewport.width / 2) / cameraRef.current.zoom + cameraRef.current.x,
+        y: (y - viewport.height / 2) / cameraRef.current.zoom + cameraRef.current.y,
+      };
+    },
+    [viewport],
   );
   const {
     panStart,
@@ -2642,16 +2703,16 @@ export default function Home() {
 
       const cameraNow = cameraRef.current;
       const cameraTarget = targetCameraRef.current;
-      cameraNow.x += (cameraTarget.x - cameraNow.x) * 0.065;
-      cameraNow.y += (cameraTarget.y - cameraNow.y) * 0.065;
-      cameraNow.zoom += (cameraTarget.zoom - cameraNow.zoom) * 0.08;
+      cameraNow.x += (cameraTarget.x - cameraNow.x) * 0.052;
+      cameraNow.y += (cameraTarget.y - cameraNow.y) * 0.052;
+      cameraNow.zoom += (cameraTarget.zoom - cameraNow.zoom) * 0.068;
 
       frame += 1;
       const cameraMoving =
         Math.abs(cameraTarget.x - cameraNow.x) > 0.02 ||
         Math.abs(cameraTarget.y - cameraNow.y) > 0.02 ||
         Math.abs(cameraTarget.zoom - cameraNow.zoom) > 0.001;
-      const publishNodes = frame % 3 === 0 || Boolean(dragNodeRef.current || dragImageRef.current || dragLinkRef.current);
+      const publishNodes = frame % 6 === 0 || Boolean(dragNodeRef.current || dragImageRef.current || dragLinkRef.current);
 
       if (cameraMoving || publishNodes) setCamera({ ...cameraNow });
       if (publishNodes) setSimNodes(current.map((node) => ({ ...node })));
@@ -2669,7 +2730,7 @@ export default function Home() {
     return () => cancelAnimationFrame(animationId);
   }, [projects, visibleGraphEdges]);
 
-  function focusNode(node: SimNode) {
+  const focusNode = useCallback((node: SimNode) => {
     setSelectedNodeId(node.id);
     setSelectedNodeIds([]);
     setSelectedImageId(null);
@@ -2680,14 +2741,14 @@ export default function Home() {
       y: node.y,
       zoom: targetCameraRef.current.zoom,
     };
-  }
+  }, []);
 
-  function enterThoughtPocket(node: SimNode) {
+  const enterThoughtPocket = useCallback((node: SimNode) => {
     setCurrentPocketId(node.id);
     focusNode(node);
-  }
+  }, [focusNode]);
 
-  function focusImage(image: { id: string; x: number; y: number; linkedNodeId?: string }) {
+  const focusImage = useCallback((image: { id: string; x: number; y: number; linkedNodeId?: string }) => {
     setSelectedImageId(image.id);
     setSelectedLinkId(null);
     if (image.linkedNodeId) {
@@ -2700,9 +2761,9 @@ export default function Home() {
       y: image.y,
       zoom: targetCameraRef.current.zoom,
     };
-  }
+  }, []);
 
-  function focusLink(link: { id: string; x: number; y: number; linkedNodeId?: string }) {
+  const focusLink = useCallback((link: { id: string; x: number; y: number; linkedNodeId?: string }) => {
     setSelectedLinkId(link.id);
     setSelectedImageId(null);
     if (link.linkedNodeId) {
@@ -2715,7 +2776,7 @@ export default function Home() {
       y: link.y,
       zoom: targetCameraRef.current.zoom,
     };
-  }
+  }, []);
 
   function centerView() {
     const current = simRef.current;
@@ -2801,19 +2862,21 @@ export default function Home() {
     }));
   }
 
-  function screenPosition(node: SimNode) {
-    return {
+  const screenPosition = useCallback(
+    (node: SimNode) => ({
       x: (node.x - camera.x) * camera.zoom + viewport.width / 2,
       y: (node.y - camera.y) * camera.zoom + viewport.height / 2,
-    };
-  }
+    }),
+    [camera, viewport],
+  );
 
-  function imageScreenPosition(image: { x: number; y: number }) {
-    return {
+  const imageScreenPosition = useCallback(
+    (image: { x: number; y: number }) => ({
       x: (image.x - camera.x) * camera.zoom + viewport.width / 2,
       y: (image.y - camera.y) * camera.zoom + viewport.height / 2,
-    };
-  }
+    }),
+    [camera, viewport],
+  );
 
   function currentBoardState(): BoardState {
     return cloneBoardState({
@@ -3068,17 +3131,6 @@ export default function Home() {
     restoreBoardState(next);
   }
 
-  function worldFromPointer(clientX: number, clientY: number) {
-    const rect = spaceRef.current?.getBoundingClientRect();
-    const x = clientX - (rect?.left ?? 0);
-    const y = clientY - (rect?.top ?? 0);
-
-    return {
-      x: (x - viewport.width / 2) / cameraRef.current.zoom + cameraRef.current.x,
-      y: (y - viewport.height / 2) / cameraRef.current.zoom + cameraRef.current.y,
-    };
-  }
-
   function scheduleGaze(event: React.PointerEvent<HTMLElement>) {
     if (event.pointerType !== "mouse" || viewport.width < 760) return;
     if (isPerformanceMode || !gazePanEnabledRef.current) {
@@ -3239,7 +3291,7 @@ export default function Home() {
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
-  function updateNodeLabel(id: string, label: string) {
+  const updateNodeLabel = useCallback((id: string, label: string) => {
     setNodeOverrides((current) => ({
       ...current,
       [id]: {
@@ -3256,9 +3308,9 @@ export default function Home() {
     );
     simRef.current = simRef.current.map((node) => (node.id === id ? { ...node, label } : node));
     setSimNodes(simRef.current.map((node) => ({ ...node })));
-  }
+  }, []);
 
-  function updateNodeColor(id: string, color: string) {
+  const updateNodeColor = useCallback((id: string, color: string) => {
     setNodeOverrides((current) => ({
       ...current,
       [id]: {
@@ -3275,11 +3327,11 @@ export default function Home() {
     );
     simRef.current = simRef.current.map((node) => (node.id === id ? { ...node, color } : node));
     setSimNodes(simRef.current.map((node) => ({ ...node })));
-  }
+  }, []);
 
-  function deleteNode(id: string) {
+  const deleteNode = useCallback((id: string) => {
     deleteNodeIds(descendantIds(id));
-  }
+  }, []);
 
   function deleteNodeIds(ids: Set<string>) {
     if (ids.size === 0) return;
@@ -3494,48 +3546,6 @@ export default function Home() {
 
   function generateImageForNode(nodeId: string, prompt: string) {
     setImageNotice(`"${prompt || nodeId}" 이미지 생성은 다음 단계에서 연결 예정입니다.`);
-  }
-
-  function addChildNode(parent: { id: string; level: NodeLevel; x: number; y: number; memo: { id: string }; color?: string }) {
-    const childLevel: NodeLevel = parent.level === "project" ? "category" : "detail";
-    const childId = `${parent.memo.id}-manual-${crypto.randomUUID()}`;
-    const angle = ((hashString(childId) % 360) / 180) * Math.PI;
-    const distance = parent.level === "project" ? 230 : 150;
-    const x = parent.x + Math.cos(angle) * distance;
-    const y = parent.y + Math.sin(angle) * distance * 0.72;
-
-    setMemos((current) =>
-      current.map((memo) =>
-        memo.id === parent.memo.id
-          ? {
-              ...memo,
-              manualNodes: [
-                ...(memo.manualNodes ?? []),
-                {
-                  id: childId,
-                  label: "새 생각",
-                  parentId: parent.id,
-                  level: childLevel,
-                  color: parent.color,
-                },
-              ],
-              updatedAt: new Date().toISOString(),
-            }
-          : memo,
-      ),
-    );
-    setNodeOverrides((current) => ({
-      ...current,
-      [childId]: {
-        label: "새 생각",
-        color: parent.color,
-        x,
-        y,
-      },
-    }));
-    setSelectedMemoId(parent.memo.id);
-    setSelectedNodeId(childId);
-    setEditingNodeId(childId);
   }
 
   function addMemo() {
