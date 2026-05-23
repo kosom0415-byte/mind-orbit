@@ -204,6 +204,9 @@ Approval requests must include:
 - Production incidents prioritize rollback or stability restoration.
 - Fancy effects are disabled before core app boot is risked.
 - Public URL health is verified by browser and console, not assumptions.
+- Build success alone is not proof of production safety.
+- Browser runtime validation is required before production confidence.
+- Rollback requires human approval.
 
 ## 9. Branch Strategy
 
@@ -362,6 +365,9 @@ Experimental features include:
 Rules:
 
 - Build in `feature/*` or small dev-branch slices.
+- Treat animation/depth/camera work as experimental by default.
+- Run approval risk check before touching `app/page.tsx`, `globals.css`, providers, core hooks, NodeLayer, or EdgeLayer.
+- Ask GPT PM before HIGH or CRITICAL work continues.
 - Add a disable path or fallback mode.
 - Keep core memo, graph, edge, drag, and AI analysis behavior stable.
 - Validate on Preview before Production consideration.

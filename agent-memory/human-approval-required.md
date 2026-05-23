@@ -1,6 +1,6 @@
 # Human Approval Required
 
-Updated: 2026-05-23T15:08:46.936Z
+Updated: 2026-05-23T23:04:46.433Z
 
 ## Pending Approval
 - Task: approval-test-high-page
@@ -16,7 +16,7 @@ Updated: 2026-05-23T15:08:46.936Z
 
 ## Guardrails
 - HIGH and CRITICAL tasks cannot run without approval token fields.
-- Approval token fields: approvedBy, approvedAt, approvalReason.
+- Approval token fields: approvalId, approvedBy, approvedAt, approvalReason, approvedScope, expiresAt, status.
 - Production deploy/rollback is never automated.
 - env/API key access is never automated.
 - Destructive commands are forbidden.

@@ -7,7 +7,7 @@ import { createTaskFromDecision, decidePriority, extractNextTaskInput, recommend
 import { generateGptPmReport } from "./report-generator";
 import { readMemorySnapshot } from "./loop-runner";
 import { buildCodebaseIndex } from "./codebase-index";
-import { enforceApprovalGate, writeApprovalReports, type ApprovalGateResult, type RiskLevel } from "./approval-gate";
+import { enforceApprovalGate, writeApprovalReports, type ApprovalDecision, type ApprovalGateResult, type RiskLevel } from "./approval-gate";
 
 type QueueStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "human_approval_required" | "cancelled";
 
@@ -16,6 +16,8 @@ interface QueueTask extends WorkflowTask {
   severity: BugSeverity;
   riskLevel?: RiskLevel;
   riskReasons?: string[];
+  approvalStatus?: ApprovalDecision;
+  approvalId?: string;
   lastError?: string;
   completedAt?: string;
   failedAt?: string;
@@ -345,6 +347,17 @@ function generateQueueGptPmReport(state: QueueState, selectedTask?: QueueTask): 
       .map((task) => `- ${task.id}: ${task.title} (${task.riskLevel ?? "unknown"})`),
     ...(state.tasks.some((task) => task.queueStatus === "human_approval_required") ? [] : ["- none"]),
     "",
+    "### Blocked Tasks",
+    ...state.tasks
+      .filter((task) => task.queueStatus === "blocked" || task.queueStatus === "human_approval_required")
+      .map((task) => `- ${task.id}: ${task.blockedReason ?? task.title}`),
+    ...(state.tasks.some((task) => task.queueStatus === "blocked" || task.queueStatus === "human_approval_required") ? [] : ["- none"]),
+    "",
+    "### Safe To Continue",
+    state.tasks.some((task) => task.queueStatus === "human_approval_required" || task.queueStatus === "blocked")
+      ? "- Not safe to continue automatically. Human/GPT PM decision required."
+      : "- Safe to continue with LOW/MEDIUM dev-only task queue items.",
+    "",
     "### GPT PM Next-Step Recommendation",
     `- ${state.nextAction}`,
     "",
@@ -404,11 +417,11 @@ function renderTaskTable(tasks: QueueTask[]): string {
   if (tasks.length === 0) return "- none";
 
   return [
-    "| ID | Priority | Severity | Risk | Attempts | Owner | Title |",
-    "| --- | --- | --- | --- | --- | --- | --- |",
+    "| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ...tasks.map(
       (task) =>
-        `| ${task.id} | ${task.priority} | ${task.severity} | ${task.riskLevel ?? "unknown"} | ${task.attempts}/${task.maxAttempts} | ${task.owner} | ${escapeTable(task.title)} |`,
+        `| ${task.id} | ${task.priority} | ${task.severity} | ${task.riskLevel ?? "unknown"} | ${task.approvalStatus ?? "none"} | ${task.attempts}/${task.maxAttempts} | ${task.owner} | ${escapeTable(task.title)} |`,
     ),
   ].join("\n");
 }

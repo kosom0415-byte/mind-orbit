@@ -93,16 +93,26 @@ GPT PM Agent에게 질문해야 하는 상황:
 - Production 확인은 실제 공개 URL과 브라우저 Console 기준으로 판단합니다.
 - Production 복구 작업은 최소 변경, 빠른 검증, 명확한 보고를 우선합니다.
 - 장애 복구 중에는 새 UX 개선을 추가하지 않습니다.
+- AI는 production deploy를 직접 실행하지 않습니다.
+- AI는 env/API key에 접근하지 않습니다.
+- AI는 destructive command를 실행하지 않습니다.
+- build 성공만으로 production safe라고 판단하지 않습니다.
+- Production 판단 전 browser runtime validation이 필요합니다.
+- rollback은 사람 승인 없이는 실행하지 않습니다.
 
 ## 6. Development Rules
 
 - `app/page.tsx` 전체 재작성 금지
+- `app/page.tsx`, `globals.css`, core hooks 수정은 approval risk check를 통과해야 합니다.
 - 기존 localStorage와 Supabase 저장 구조 보존
 - 노드 생성, 선택, 삭제, 드래그, edge 표시, 이미지/링크 노드, AI 구조화 기능 보존
 - 순수 로직은 가능한 경우 `lib/`로 분리
 - UI 변경은 요청 범위 안에서만 진행
 - 큰 UX 효과는 작은 단위로 적용하고 Preview에서 확인
+- animation/depth/camera 작업은 experimental task로 분류합니다.
+- high-risk task는 반드시 GPT PM에게 먼저 질문합니다.
 - 런타임 안정성이 의심되면 임시 비활성화를 허용
+- runtime crash 발생 시 fancy effect보다 app load stability를 우선합니다.
 
 ## 7. Retry Policy
 

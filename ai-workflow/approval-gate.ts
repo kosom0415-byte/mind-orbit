@@ -4,14 +4,17 @@ import { pathToFileURL } from "node:url";
 import type { ApprovalType, WorkflowTask } from "./orchestrator";
 
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-export type ApprovalDecision = "approved" | "denied" | "pending";
+export type ApprovalDecision = "pending" | "approved" | "rejected" | "expired";
 
 export interface ApprovalToken {
+  approvalId: string;
   taskId: string;
   approvedBy: string;
   approvedAt: string;
   approvalReason: string;
-  decision: ApprovalDecision;
+  approvedScope: string[];
+  expiresAt: string;
+  status: ApprovalDecision;
 }
 
 export interface TaskRiskAssessment {
@@ -30,6 +33,9 @@ export interface ApprovalGateTask extends WorkflowTask {
   approvedBy?: string;
   approvedAt?: string;
   approvalReason?: string;
+  approvedScope?: string[];
+  approvalId?: string;
+  approvalStatus?: ApprovalDecision;
   cancelledAt?: string;
 }
 
@@ -52,6 +58,7 @@ const RISK_RULES: Array<{ pattern: RegExp; score: number; reason: string }> = [
   { pattern: /globals\.css/i, score: 35, reason: "Touches global CSS." },
   { pattern: /app\/page\.tsx/i, score: 40, reason: "Touches primary app page." },
   { pattern: /provider|providers/i, score: 30, reason: "Touches provider/root app setup." },
+  { pattern: /hook|hooks|use[A-Z][a-zA-Z]+/i, score: 30, reason: "Touches core hook surface." },
   { pattern: /nodelayer/i, score: 35, reason: "Touches node render layer." },
   { pattern: /edgelayer/i, score: 35, reason: "Touches edge render layer." },
   { pattern: /camera|perspective|depth|translatez|rotatex|rotatey/i, score: 40, reason: "Touches camera/depth transform system." },
@@ -62,13 +69,20 @@ const RISK_RULES: Array<{ pattern: RegExp; score: number; reason: string }> = [
   { pattern: /dependency upgrade|upgrade dependency|npm install|package-lock|package\.json/i, score: 30, reason: "Touches dependency upgrade/install surface." },
   { pattern: /production|deploy|rollback|main branch|vercel|domain|alias/i, score: 50, reason: "Touches production/deployment surface." },
   { pattern: /env|api key|secret|token|password/i, score: 50, reason: "Touches secret/env/security surface." },
+  { pattern: /auth|security|payment|billing/i, score: 50, reason: "Touches auth/security/payment surface." },
+  { pattern: /database schema|db schema|migration|supabase schema/i, score: 50, reason: "Touches database schema or migration surface." },
+  { pattern: /git push|push automation/i, score: 50, reason: "Attempts to automate git push." },
+  { pattern: /major upgrade|breaking upgrade/i, score: 45, reason: "Touches dependency major upgrade surface." },
 ];
 
 export const DANGEROUS_COMMAND_REGISTRY = [
   "git reset --hard",
   "git push --force",
   "git clean -fd",
+  "git checkout --",
   "rm -rf",
+  "rm ",
+  "find . -delete",
   "vercel --prod",
   "vercel rollback",
   "vercel alias",
@@ -121,12 +135,14 @@ export function enforceApprovalGate<T extends ApprovalGateTask>(projectRoot: str
     riskReasons: assessment.reasons,
   };
 
-  if (approval?.decision === "denied") {
+  if (approval?.status === "rejected" || approval?.status === "expired") {
     const cancelled = {
       ...nextTask,
       queueStatus: "cancelled",
       status: "cancelled",
       humanApprovalRequired: false,
+      approvalStatus: approval.status,
+      approvalId: approval.approvalId,
       cancelledAt: generatedAt,
       blockedReason: `Human approval denied: ${approval.approvalReason}`,
       updatedAt: generatedAt,
@@ -138,12 +154,15 @@ export function enforceApprovalGate<T extends ApprovalGateTask>(projectRoot: str
     return { task: nextTask as T, assessment, approval, action: "allow", message: "Approval not required." };
   }
 
-  if (approval?.decision === "approved") {
+  if (approval?.status === "approved") {
     const approved = {
       ...nextTask,
+      approvalId: approval.approvalId,
+      approvalStatus: approval.status,
       approvedBy: approval.approvedBy,
       approvedAt: approval.approvedAt,
       approvalReason: approval.approvalReason,
+      approvedScope: approval.approvedScope,
       humanApprovalRequired: false,
       queueStatus: task.queueStatus === "human_approval_required" || task.queueStatus === "blocked" ? "pending" : task.queueStatus,
       status: task.status === "needs_human_approval" || task.status === "blocked" ? "queued" : task.status,
@@ -160,6 +179,7 @@ export function enforceApprovalGate<T extends ApprovalGateTask>(projectRoot: str
     owner: "human",
     humanApprovalRequired: true,
     approvalTypes: ensureApprovalType(task.approvalTypes),
+    approvalStatus: "pending",
     blockedReason: `Approval gate blocked ${assessment.riskLevel} risk task: ${assessment.reasons.join("; ")}`,
     updatedAt: generatedAt,
   } as T;
@@ -179,21 +199,27 @@ export function parseApprovalResponse(markdown: string): ApprovalToken[] {
   return sections
     .map((section) => {
       const taskId = readValue(section, "Task") || readValue(section, "Task ID");
-      const decisionText = readValue(section, "Decision");
-      if (!taskId || !decisionText) return undefined;
+      const statusText = readValue(section, "Status") || readValue(section, "Decision");
+      if (!taskId || !statusText) return undefined;
 
-      const decision: ApprovalDecision = /deny|denied|reject|rejected|거절|반려/i.test(decisionText)
-        ? "denied"
-        : /approve|approved|승인/i.test(decisionText)
-          ? "approved"
-          : "pending";
+      const status: ApprovalDecision = /expire|expired|만료/i.test(statusText)
+        ? "expired"
+        : /deny|denied|reject|rejected|거절|반려/i.test(statusText)
+          ? "rejected"
+          : /approve|approved|승인/i.test(statusText)
+            ? "approved"
+            : "pending";
+      const expiresAt = readValue(section, "Expires At") || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       return {
+        approvalId: readValue(section, "Approval ID") || `approval-${taskId}`,
         taskId,
-        decision,
+        status: isExpired(status, expiresAt) ? "expired" : status,
         approvedBy: readValue(section, "Approved By") || readValue(section, "Approver") || "human",
         approvedAt: readValue(section, "Approved At") || new Date().toISOString(),
         approvalReason: readValue(section, "Reason") || "No approval reason provided.",
+        approvedScope: splitCsv(readValue(section, "Approved Scope") || "task-only"),
+        expiresAt,
       };
     })
     .filter((token): token is ApprovalToken => Boolean(token));
@@ -234,10 +260,19 @@ function generateApprovalRequest(results: ApprovalGateResult<ApprovalGateTask>[]
           `  - Score: ${result.assessment.score}`,
           `  - Reason: ${result.assessment.reasons.join("; ")}`,
           "  - Required response format:",
+          `    - Approval ID: approval-${result.task.id}`,
           `    - Task: ${result.task.id}`,
-          "    - Decision: approved | denied",
+          "    - Status: approved | rejected",
           "    - Approved By: <human name>",
+          "    - Approved Scope: <task-only | listed files | exact command>",
+          "    - Expires At: <ISO timestamp>",
           "    - Reason: <why this is safe or denied>",
+          "  - Recommended choices:",
+          "    - A. approve",
+          "    - B. reject",
+          "    - C. modify scope",
+          "    - D. rollback",
+          "    - E. ask GPT PM",
         ])
       : ["- None."]),
     "",
@@ -267,7 +302,7 @@ function generateHumanApprovalRequired(results: ApprovalGateResult<ApprovalGateT
     "",
     "## Guardrails",
     "- HIGH and CRITICAL tasks cannot run without approval token fields.",
-    "- Approval token fields: approvedBy, approvedAt, approvalReason.",
+    "- Approval token fields: approvalId, approvedBy, approvedAt, approvalReason, approvedScope, expiresAt, status.",
     "- Production deploy/rollback is never automated.",
     "- env/API key access is never automated.",
     "- Destructive commands are forbidden.",
@@ -299,7 +334,11 @@ function generateBlockedTasks(results: ApprovalGateResult<ApprovalGateTask>[], g
     `Updated: ${generatedAt}`,
     "",
     ...(blocked.length
-      ? blocked.map((result) => `- ${result.task.id}: ${result.task.title} (${result.assessment.riskLevel})`)
+      ? blocked.flatMap((result) => [
+          `- ${result.task.id}: ${result.task.title} (${result.assessment.riskLevel})`,
+          `  - Blocked reason: ${result.task.blockedReason}`,
+          "  - Recommended safe alternative: narrow scope, split into docs/test-only task, or ask GPT PM for a safer handoff.",
+        ])
       : ["- None."]),
     "",
   ].join("\n");
@@ -330,6 +369,19 @@ function generateRiskEscalations(results: ApprovalGateResult<ApprovalGateTask>[]
 function readValue(section: string, label: string): string | undefined {
   const match = section.match(new RegExp(`(?:^|\\n)\\s*-?\\s*${escapeRegExp(label)}\\s*:\\s*(.+)`, "i"));
   return match?.[1]?.trim();
+}
+
+function splitCsv(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function isExpired(status: ApprovalDecision, expiresAt: string): boolean {
+  if (status !== "approved") return false;
+  const expires = Date.parse(expiresAt);
+  return Number.isFinite(expires) && expires < Date.now();
 }
 
 function escapeRegExp(value: string): string {
@@ -391,9 +443,12 @@ function runDryRun(projectRoot: string): void {
         "# Approval Response",
         "",
         "## Approved High Task",
+        "- Approval ID: approval-approval-test-approved-high-page",
         "- Task: approval-test-approved-high-page",
-        "- Decision: approved",
+        "- Status: approved",
         "- Approved By: Human Vision Owner",
+        "- Approved Scope: dry-run only",
+        `- Expires At: ${new Date(Date.now() + 60 * 60 * 1000).toISOString()}`,
         "- Reason: Dry-run validation token only.",
         "",
       ].join("\n"),

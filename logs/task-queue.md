@@ -1,6 +1,6 @@
 # Autonomous Task Queue
 
-Generated: 2026-05-23T15:08:00.441Z
+Generated: 2026-05-23T23:03:11.485Z
 
 ## Summary
 - Pending: 0
@@ -27,9 +27,9 @@ Generated: 2026-05-23T15:08:00.441Z
 - none
 
 ## Completed
-| ID | Priority | Severity | Risk | Attempts | Owner | Title |
-| --- | --- | --- | --- | --- | --- | --- |
-| auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | low | s3-minor | LOW | 1/2 | codex-engineer | Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation. |
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | low | s3-minor | LOW | none | 1/2 | codex-engineer | Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation. |
 
 ## Recent Failed Task History
 - none
@@ -61,7 +61,7 @@ Generated: 2026-05-23T15:08:00.441Z
 <!-- task-queue-state
 {
   "version": 1,
-  "generatedAt": "2026-05-23T15:08:00.441Z",
+  "generatedAt": "2026-05-23T23:03:11.485Z",
   "tasks": [
     {
       "id": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",

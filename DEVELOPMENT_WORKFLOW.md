@@ -68,6 +68,8 @@
 - UI 디자인 변경은 요청된 범위 안에서만 수행합니다.
 - 런타임 안정성이 의심되면 fancy animation보다 앱 부팅 성공을 우선합니다.
 - camera, perspective, translateZ, rotateX/Y, motion smoothing, transform 변경은 Preview에서 충분히 확인합니다.
+- animation/depth/camera 변경은 experimental task로 분류합니다.
+- `app/page.tsx`, `globals.css`, core hooks 수정은 approval risk check를 통과해야 합니다.
 - 타입 변경 시 기존 데이터와의 호환성을 확인합니다.
 
 ## 5. Forbidden Actions
@@ -75,6 +77,8 @@
 - 사람 승인 없이 Production 설정 변경
 - 사람 승인 없이 `main` 직접 push
 - 사람 승인 없이 Vercel Production rollback, promote, domain 변경
+- AI가 Production deploy를 직접 실행
+- AI가 destructive command 실행
 - 유료 기능, 결제, 업그레이드 버튼 클릭
 - 비밀번호, 2FA, 보안 승인 우회 시도
 - API key, env 값, token, secret을 채팅/로그/스크린샷에 노출
@@ -105,9 +109,13 @@
 ## 7. Production Safety Policy
 
 - Production 변경은 반드시 사람 승인이 필요합니다.
+- build 성공만으로 Production safe라고 판단하지 않습니다.
+- Production 판단에는 browser runtime validation이 필요합니다.
 - Production 장애가 발생하면 UX 개선보다 rollback 또는 안정 복구를 우선합니다.
 - 원인이 불명확한 경우 최근 변경 중 camera/depth/transform/motion/import/init order를 우선 점검합니다.
 - Production 복구 시 임시 비활성화가 허용됩니다.
+- rollback은 사람 승인 후에만 실행합니다.
+- high-risk task는 GPT PM에게 먼저 질의합니다.
 - 복구 후에는 원인, 수정 파일, 커밋, 정상 URL을 보고합니다.
 
 ## 8. API Key And Environment Rules
