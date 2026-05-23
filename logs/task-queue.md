@@ -1,0 +1,72 @@
+# Autonomous Task Queue
+
+Generated: 2026-05-23T08:15:31.463Z
+
+## Summary
+- Pending: 0
+- Running: 0
+- Blocked: 0
+- Completed: 1
+- Human approval required: 0
+- Next action: Queue is clear. Ask GPT PM Agent for the next prioritized task.
+
+## Pending
+- none
+
+## Running
+- none
+
+## Blocked
+- none
+
+## Human Approval Required
+- none
+
+## Completed
+| ID | Priority | Severity | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- |
+| auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | low | s3-minor | 1/2 | codex-engineer | Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation. |
+
+## Recent Failed Task History
+- none
+
+## Safety
+- Production deploy: not automated
+- env/API key access: not used
+- OpenAI API calls: mocked / disabled
+- Infinite retry protection: enabled
+
+<!-- task-queue-state
+{
+  "version": 1,
+  "generatedAt": "2026-05-23T08:15:31.463Z",
+  "tasks": [
+    {
+      "id": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+      "title": "Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.",
+      "goal": "Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.",
+      "status": "done",
+      "owner": "codex-engineer",
+      "priority": "low",
+      "branch": "dev",
+      "attempts": 1,
+      "maxAttempts": 2,
+      "productionSafeMode": true,
+      "humanApprovalRequired": false,
+      "approvalTypes": [],
+      "createdAt": "2026-05-23T08:14:22.209Z",
+      "updatedAt": "2026-05-23T08:14:22.208Z",
+      "context": "Generated from agent-memory/workflow-state.md",
+      "validationRequired": [
+        "npm run build"
+      ],
+      "nextSuggestedTask": "Generate Codex handoff and proceed on dev with build validation.",
+      "queueStatus": "completed",
+      "severity": "s3-minor",
+      "completedAt": "2026-05-23T08:14:22.208Z"
+    }
+  ],
+  "failedHistory": [],
+  "nextAction": "Queue is clear. Ask GPT PM Agent for the next prioritized task."
+}
+-->

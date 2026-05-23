@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "agent:loop": "tsx ai-workflow/loop-runner.ts",
+    "agent:queue": "tsx ai-workflow/task-queue.ts",
     "agent:report": "tsx ai-workflow/report-generator.ts",
     "agent:watch": "tsx ai-workflow/agent-watch.ts",
     "lint": "next lint"
