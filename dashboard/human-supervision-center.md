@@ -1,6 +1,6 @@
 # Human Supervision Center
 
-Generated: 2026-05-24T10:08:20.365Z
+Generated: 2026-05-24T22:38:53.113Z
 
 ## 지금 내가 승인해야 할 것
 - mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
@@ -66,7 +66,7 @@ Generated: 2026-05-24T05:45:20.059Z
 ## GPT / Human 질문
 # Questions For Human Vision Owner
 
-Generated: 2026-05-24T10:08:19.914Z
+Generated: 2026-05-24T22:38:52.625Z
 
 - Real bridge found a HIGH/CRITICAL or approval-gated handoff.
 - Should this be approved, rejected, modified in scope, or sent back to GPT PM?

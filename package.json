@@ -31,6 +31,7 @@
     "agent:human-center": "node --import tsx ai-workflow/human-supervision-center.ts",
     "agent:continue": "node --import tsx ai-workflow/continue-workflow.ts",
     "agent:mobile": "node --import tsx ai-workflow/mobile-report-generator.ts",
+    "agent:daemon": "node --import tsx ai-workflow/persistent-runtime-daemon.ts",
     "agent:report": "node --import tsx ai-workflow/report-generator.ts",
     "agent:self-heal": "node --import tsx ai-workflow/self-heal-engine.ts",
     "agent:watch": "node --import tsx ai-workflow/agent-watch.ts",
