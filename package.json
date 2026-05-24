@@ -15,6 +15,7 @@
     "agent:gpt": "node --import tsx ai-workflow/openai-gpt-connector.ts",
     "agent:codex": "node --import tsx ai-workflow/codex-connector.ts",
     "agent:real-bridge": "node --import tsx ai-workflow/real-bridge-runtime.ts",
+    "agent:live-readiness": "node --import tsx ai-workflow/live-readiness-check.ts",
     "agent:task-bus": "node --import tsx ai-workflow/task-bus.ts",
     "agent:state": "node --import tsx ai-workflow/shared-state-manager.ts",
     "agent:approval": "node --import tsx ai-workflow/approval-gate.ts",

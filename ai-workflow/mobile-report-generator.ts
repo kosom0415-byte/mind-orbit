@@ -12,6 +12,7 @@ export function generateMobileStatus(projectRoot: string): string {
   const humanQuestions = readOptional(projectRoot, "agent-memory/questions-for-human.md");
   const runtime = readOptional(projectRoot, "logs/runtime-vision.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
+  const readiness = readOptional(projectRoot, "logs/live-readiness.md");
   const commit = latestCommit(projectRoot);
   const approvalNeeded = /Human intervention needed:\s+yes|Approval waiting:\s+[1-9]/i.test(state);
   const markdown = [
@@ -26,6 +27,8 @@ export function generateMobileStatus(projectRoot: string): string {
     `- 앱 정상 여부: ${firstMatch(runtime, /Risk:\s*(.+)/i, "unknown")}`,
     `- Release readiness: ${firstMatch(release, /Decision:\s*(.+)/i, "unknown")}`,
     `- 마지막 커밋: ${commit}`,
+    `- Live GPT ready: ${firstMatch(readiness, /Live GPT ready:\s*(.+)/i, "unknown")}`,
+    `- Live Codex ready: ${firstMatch(readiness, /Live Codex ready:\s*(.+)/i, "unknown")}`,
     "",
     "## 다음 Codex 지시문",
     nextTask.trim() ? nextTask.split("\n").slice(0, 12).join("\n") : "- none",
@@ -37,7 +40,7 @@ export function generateMobileStatus(projectRoot: string): string {
     humanQuestions.trim() ? humanQuestions.split("\n").slice(0, 12).join("\n") : "- none",
     "",
     "## 다음 추천 액션",
-    approvalNeeded ? "- `agent-memory/human-response.md`에 approve/reject/modify-scope/ask-gpt 중 하나를 남기기" : "- `npm run agent:continue`로 루프 갱신",
+    approvalNeeded ? "- `agent-memory/human-response.md`에 approve/reject/modify-scope/ask-gpt 중 하나를 남긴 뒤 `npm run agent:continue` 실행" : "- `npm run agent:continue`로 루프 갱신",
     "",
   ].join("\n");
   writeText(projectRoot, MOBILE_STATUS_PATH, markdown);
