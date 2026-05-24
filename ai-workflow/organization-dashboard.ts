@@ -36,6 +36,14 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const autoValidation = readOptional(projectRoot, "logs/auto-validation-pipeline.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const executionHistory = readOptional(projectRoot, "logs/execution-history.md");
+  const directBridge = readOptional(projectRoot, "logs/direct-bridge.md");
+  const taskBus = readOptional(projectRoot, "logs/task-bus.md");
+  const sharedState = readOptional(projectRoot, "agent-memory/shared-state.md");
+  const nextExecutable = readOptional(projectRoot, "agent-memory/next-executable-task.md");
+  const questionsForGpt = readOptional(projectRoot, "agent-memory/questions-for-gpt.md");
+  const questionsForHuman = readOptional(projectRoot, "agent-memory/questions-for-human.md");
+  const humanCenter = readOptional(projectRoot, "dashboard/human-supervision-center.md");
+  const mobileStatus = readOptional(projectRoot, "dashboard/mobile-status.md");
   const stateMachine = readOptional(projectRoot, "logs/task-state-machine.md");
   const counts = deriveCounts(queue, approvals);
   const agents = listAgents();
@@ -76,6 +84,30 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     `- Active queue count: ${counts.activeQueue}`,
     `- Blocked task count: ${counts.blocked}`,
     `- Human approval required count: ${counts.humanApprovalRequired}`,
+    "",
+    "## GPT ↔ Codex Bridge Status",
+    excerpt(readOptional(projectRoot, "logs/gpt-codex-bridge.md"), "No GPT Codex bridge log found."),
+    "",
+    "## Direct Bridge Status",
+    excerpt(directBridge, "No direct bridge log found."),
+    "",
+    "## Task Bus Status",
+    excerpt(taskBus, "No task bus log found."),
+    "",
+    "## Shared State Status",
+    excerpt(sharedState, "No shared state found."),
+    "",
+    "## Human Supervision Status",
+    excerpt(humanCenter, "No human supervision center found."),
+    "",
+    "## Next Executable Task",
+    excerpt(nextExecutable, "No next executable task found."),
+    "",
+    "## Questions For GPT",
+    excerpt(questionsForGpt, "No GPT questions found."),
+    "",
+    "## Questions For Human",
+    excerpt(questionsForHuman, "No human questions found."),
     "",
     "## Human Confirmation Waiting",
     excerpt(confirmations, "No human confirmation request found."),
@@ -163,6 +195,15 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Current Highest Risk",
     highestRiskSummary(counts, runtimeVision, release),
+    "",
+    "## Remaining Automation Gap",
+    "- Real OpenAI API calls are intentionally not connected.",
+    "- Production deploy and rollback remain manual human actions.",
+    "- Human Vision Owner still makes product direction and high-risk approval decisions.",
+    "- Browser validation is recorded, but visual diff approval remains human-supervised.",
+    "",
+    "## Mobile Status",
+    excerpt(mobileStatus, "No mobile status found."),
     "",
     "## Safe / Unsafe Tasks",
     `- Safe task guidance: ${nextSafeTask(queue).replace(/^- /, "")}`,

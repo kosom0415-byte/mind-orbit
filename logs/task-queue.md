@@ -1,6 +1,6 @@
 # Autonomous Task Queue
 
-Generated: 2026-05-24T05:47:46.414Z
+Generated: 2026-05-24T06:18:56.301Z
 
 ## Summary
 - Pending: 0
@@ -47,10 +47,10 @@ Generated: 2026-05-24T05:47:46.414Z
 - Production risk: medium
 - Related files:
   - app/page.tsx
-  - ai-workflow/orchestrator.ts
   - ai-workflow/approval-gate.ts
+  - ai-workflow/orchestrator.ts
   - app/components/EdgeLayer.tsx
-  - app/components/NodeLayer.tsx
+  - ai-workflow/workflow-utils.ts
 - Risk files:
   - app/page.tsx
   - app/globals.css
@@ -70,7 +70,7 @@ Generated: 2026-05-24T05:47:46.414Z
 <!-- task-queue-state
 {
   "version": 1,
-  "generatedAt": "2026-05-24T05:47:46.414Z",
+  "generatedAt": "2026-05-24T06:18:56.301Z",
   "tasks": [
     {
       "id": "mock-modify-scope-task",
@@ -88,7 +88,7 @@ Generated: 2026-05-24T05:47:46.414Z
         "high_risk_task"
       ],
       "createdAt": "2026-05-24T05:19:44.321Z",
-      "updatedAt": "2026-05-24T05:47:46.414Z",
+      "updatedAt": "2026-05-24T06:18:56.301Z",
       "queueStatus": "human_approval_required",
       "severity": "s1-critical",
       "riskLevel": "CRITICAL",
@@ -143,7 +143,7 @@ Generated: 2026-05-24T05:47:46.414Z
         "high_risk_task"
       ],
       "createdAt": "2026-05-24T05:19:25.225Z",
-      "updatedAt": "2026-05-24T05:47:46.414Z",
+      "updatedAt": "2026-05-24T06:18:56.301Z",
       "queueStatus": "cancelled",
       "severity": "s1-critical",
       "riskLevel": "LOW",
@@ -170,7 +170,7 @@ Generated: 2026-05-24T05:47:46.414Z
         "high_risk_task"
       ],
       "createdAt": "2026-05-24T05:19:22.870Z",
-      "updatedAt": "2026-05-24T05:47:46.414Z",
+      "updatedAt": "2026-05-24T06:18:56.301Z",
       "queueStatus": "completed",
       "severity": "s1-critical",
       "riskLevel": "CRITICAL",
@@ -250,10 +250,10 @@ Generated: 2026-05-24T05:47:46.414Z
   "codebaseImpact": {
     "relatedFiles": [
       "app/page.tsx",
-      "ai-workflow/orchestrator.ts",
       "ai-workflow/approval-gate.ts",
+      "ai-workflow/orchestrator.ts",
       "app/components/EdgeLayer.tsx",
-      "app/components/NodeLayer.tsx"
+      "ai-workflow/workflow-utils.ts"
     ],
     "riskFiles": [
       "app/page.tsx",
