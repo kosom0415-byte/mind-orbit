@@ -13,6 +13,7 @@
     "agent:bridge": "tsx ai-workflow/gpt-codex-bridge.ts",
     "agent:approval": "tsx ai-workflow/approval-gate.ts",
     "agent:executor": "tsx ai-workflow/task-executor.ts",
+    "agent:runtime": "tsx ai-workflow/agent-executor.ts",
     "agent:dashboard": "tsx ai-workflow/organization-dashboard.ts",
     "agent:report": "tsx ai-workflow/report-generator.ts",
     "agent:self-heal": "tsx ai-workflow/self-heal-engine.ts",

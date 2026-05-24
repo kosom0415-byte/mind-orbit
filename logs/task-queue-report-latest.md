@@ -3,7 +3,7 @@
 ### Task
 - 요청 요약: 지속 실행 가능한 task queue 구조 검증
 - Branch: dev
-- Generated: 2026-05-23T23:03:11.485Z
+- Generated: 2026-05-24T02:21:56.161Z
 
 ### Changes
 - Created or updated markdown-backed task queue state
@@ -33,8 +33,8 @@
 - Production risk: medium
 - Related files:
   - app/page.tsx
-  - app/components/EdgeLayer.tsx
   - ai-workflow/orchestrator.ts
+  - app/components/EdgeLayer.tsx
   - app/components/NodeLayer.tsx
   - lib/mind/types.ts
 - Risk files:

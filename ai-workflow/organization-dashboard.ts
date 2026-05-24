@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { listAgents } from "./agent-registry";
+import { readMessages } from "./message-bus";
 
 interface DashboardCounts {
   activeQueue: number;
@@ -22,7 +24,19 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const memory = readOptional(projectRoot, "agent-memory/project-state-latest.md");
   const codebase = readOptional(projectRoot, "logs/architecture-summary.md");
   const approvals = readOptional(projectRoot, "agent-memory/human-approval-required.md");
+  const runtime = readOptional(projectRoot, "logs/agent-runtime-execution.md");
+  const stateMachine = readOptional(projectRoot, "logs/task-state-machine.md");
   const counts = deriveCounts(queue, approvals);
+  const agents = listAgents();
+  const messages = readMessages(projectRoot);
+  const maturity = calculateMaturity({
+    hasQueue: Boolean(queue),
+    hasBridge: Boolean(readOptional(projectRoot, "logs/gpt-codex-bridge.md")),
+    hasApprovalGate: Boolean(readOptional(projectRoot, "logs/approval-history.md")),
+    hasSelfHeal: Boolean(selfHeal),
+    hasRuntime: Boolean(runtime),
+    hasMessageBus: messages.length > 0,
+  });
 
   const markdown = [
     "# AI Organization Dashboard",
@@ -41,10 +55,29 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "- Production deploy automation: disabled",
     "- env/API access automation: disabled",
     "",
+    "## Active Agents",
+    ...agents.map(
+      (agent) =>
+        `- ${agent.id}: ${agent.currentStatus} | max autonomous level ${agent.maxAutonomousLevel} | production ${agent.canModifyProduction ? "yes" : "no"}`,
+    ),
+    "",
     "## Queue",
     `- Active queue count: ${counts.activeQueue}`,
     `- Blocked task count: ${counts.blocked}`,
     `- Human approval required count: ${counts.humanApprovalRequired}`,
+    "",
+    "## Task Ownership",
+    "- GPT_PM_AGENT: planning, blocked routing, handoff framing",
+    "- CODEX_ENGINEER_AGENT: dev implementation and validation",
+    "- CLAUDE_REVIEWER_AGENT: risk review simulation",
+    "- SELF_HEAL_AGENT: failure recovery recommendation",
+    "- RELEASE_MANAGER_AGENT: release readiness only, no deploy",
+    "",
+    "## Blocked Flows",
+    excerpt(readOptional(projectRoot, "logs/blocked-tasks.md"), "No blocked task log found."),
+    "",
+    "## Review Status",
+    excerpt(runtime, "No runtime execution log found."),
     "",
     "## Latest Engineer Report",
     excerpt(engineerReport, "No engineer report found."),
@@ -66,8 +99,22 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "- Browser runtime validation is required before production confidence",
     "",
     "## Autonomous Maturity Level",
-    "- Level 4: enforceable mock safety gates with human approval files",
-    "- Remaining gap: real executor command firewall and approval UI integration",
+    `- Score: ${maturity.score}/5`,
+    `- Level: ${maturity.label}`,
+    `- Reason: ${maturity.reason}`,
+    "",
+    "## Current Risk Level",
+    currentRiskLevel(counts, runtime),
+    "",
+    "## Safe / Unsafe Tasks",
+    `- Safe task guidance: ${nextSafeTask(queue).replace(/^- /, "")}`,
+    ...(counts.unsafeWaitingApproval.length ? counts.unsafeWaitingApproval.map((item) => `- Unsafe waiting approval: ${item}`) : ["- Unsafe waiting approval: none"]),
+    "",
+    "## Inter-Agent Messages",
+    ...(messages.length ? messages.slice(-8).map((message) => `- ${message.from} -> ${message.to}: ${message.type} / ${message.summary}`) : ["- None."]),
+    "",
+    "## Task State Machine",
+    excerpt(stateMachine, "No task state machine log found."),
     "",
     "## Next Recommended Safe Task",
     nextSafeTask(queue),
@@ -85,6 +132,45 @@ export function generateOrganizationDashboard(projectRoot: string): string {
 
   writeFileSync(join(projectRoot, DASHBOARD_PATH), markdown, "utf8");
   return markdown;
+}
+
+function currentRiskLevel(counts: DashboardCounts, runtimeMarkdown: string): string {
+  if (counts.humanApprovalRequired > 0) return "- HIGH: human approval is waiting.";
+  if (/DANGEROUS|CRITICAL/i.test(runtimeMarkdown)) return "- HIGH: runtime review reported dangerous risk.";
+  if (counts.blocked > 0) return "- MEDIUM: blocked tasks exist.";
+  return "- LOW: no blocked or approval-waiting task detected.";
+}
+
+function calculateMaturity(input: {
+  hasQueue: boolean;
+  hasBridge: boolean;
+  hasApprovalGate: boolean;
+  hasSelfHeal: boolean;
+  hasRuntime: boolean;
+  hasMessageBus: boolean;
+}): { score: number; label: string; reason: string } {
+  let score = 0;
+  if (input.hasQueue || input.hasBridge) score = 2;
+  if (input.hasQueue && input.hasBridge && input.hasApprovalGate) score = 3;
+  if (score >= 3 && input.hasSelfHeal && input.hasMessageBus) score = 4;
+  if (score >= 4 && input.hasRuntime) score = 5;
+
+  const labels = [
+    "LEVEL 0 manual coding only",
+    "LEVEL 1 AI assisted",
+    "LEVEL 2 workflow automation",
+    "LEVEL 3 multi-agent orchestration",
+    "LEVEL 4 self-healing runtime",
+    "LEVEL 5 human-supervised autonomous engineering",
+  ];
+  return {
+    score,
+    label: labels[score],
+    reason:
+      score >= 5
+        ? "Registry, message bus, approval gate, self-heal, and runtime simulation are present; production remains human-gated."
+        : "Runtime simulation or safety evidence is incomplete.",
+  };
 }
 
 function deriveCounts(queueMarkdown: string, approvalMarkdown: string): DashboardCounts {
