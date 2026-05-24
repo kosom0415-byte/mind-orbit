@@ -65,6 +65,7 @@ const TASK_QUEUE_PATH = "logs/task-queue.md";
 const OPEN_QUESTIONS_PATH = "agent-memory/open-questions.md";
 const HUMAN_APPROVAL_PATH = "agent-memory/human-approval-required.md";
 const APPROVAL_REQUEST_PATH = "agent-memory/approval-request.md";
+const HUMAN_CONFIRMATION_PATH = "agent-memory/human-confirmation-required.md";
 const NEXT_CODEX_HANDOFF_PATH = "agent-memory/next-codex-handoff.md";
 const BRIDGE_LOG_PATH = "logs/gpt-codex-bridge.md";
 const STATE_BLOCK_START = "<!-- task-queue-state";
@@ -84,13 +85,14 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
   ensureDirectories(projectRoot);
 
   const generatedAt = new Date().toISOString();
-  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, APPROVAL_REQUEST_PATH];
+  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, APPROVAL_REQUEST_PATH, HUMAN_CONFIRMATION_PATH];
   const gptPmReport = readOptional(projectRoot, GPT_PM_REPORT_PATH);
   const engineerReport = readOptional(projectRoot, ENGINEER_REPORT_PATH);
   const queueMarkdown = readOptional(projectRoot, TASK_QUEUE_PATH);
   const previousQuestions = readOptional(projectRoot, OPEN_QUESTIONS_PATH);
   const previousHumanApproval = readOptional(projectRoot, HUMAN_APPROVAL_PATH);
   const approvalRequest = readOptional(projectRoot, APPROVAL_REQUEST_PATH);
+  const humanConfirmation = readOptional(projectRoot, HUMAN_CONFIRMATION_PATH);
   const queueState = parseQueueState(queueMarkdown);
   const engineer = parseEngineerReport(engineerReport);
 
@@ -99,7 +101,7 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
     ...questionsFromBlockedTasks(queueState),
     ...questionsFromHumanApprovalTasks(queueState),
   ]);
-  const humanApprovals = humanApprovalsFromQueue(queueState, engineer.humanApprovalNeeded, previousHumanApproval, approvalRequest);
+  const humanApprovals = humanApprovalsFromQueue(queueState, engineer.humanApprovalNeeded, previousHumanApproval, `${approvalRequest}\n${humanConfirmation}`);
   const gptAnswer = port.parseGptAnswer(gptPmReport);
   const nextTask = gptAnswer.nextTask ?? taskFromQueueOrFallback(queueState, questions, generatedAt);
   const codexHandoff = port.createCodexHandoff(nextTask);

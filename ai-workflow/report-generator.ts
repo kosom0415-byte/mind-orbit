@@ -54,6 +54,20 @@ export function generateEngineerReport(input: LoopRunReportInput): string {
     `- Status: ${input.task.status}`,
     `- Next action: ${input.nextAction}`,
     "",
+    "### Attempted Task",
+    `- ${input.task.id}: ${input.task.title}`,
+    "",
+    "### Approval Gate Result",
+    `- Risk: ${input.task.riskLevel ?? "unknown"}`,
+    `- Human approval required: ${input.task.humanApprovalRequired ? "yes" : "no"}`,
+    `- Blocked reason: ${input.task.blockedReason ?? "none"}`,
+    "",
+    "### Suggested Safer Alternative",
+    "- If blocked, ask GPT PM to narrow scope or split into LOW-risk documentation/test task.",
+    "",
+    "### Next Safe Task",
+    "- Prefer LOW/MEDIUM dev-only work with build validation.",
+    "",
     "### Questions For GPT PM",
     ...(input.task.status === "blocked" ? [`- ${input.task.blockedReason ?? "Clarification needed."}`] : ["-"]),
     "",
@@ -107,6 +121,27 @@ export function generateGptPmReport(input: LoopRunReportInput): string {
           `- Reason: ${input.task.riskReasons?.join("; ") ?? input.task.blockedReason ?? "Approval-gated task."}`,
         ]
       : ["- none"]),
+    "",
+    "### Blocked Tasks",
+    ...(input.task.status === "blocked" || input.task.humanApprovalRequired
+      ? [`- ${input.task.id}: ${input.task.blockedReason ?? input.task.title}`]
+      : ["- none"]),
+    "",
+    "### High-Risk Changes",
+    ...(input.task.riskLevel === "HIGH" || input.task.riskLevel === "CRITICAL"
+      ? [`- ${input.task.id}: ${input.task.riskLevel}`]
+      : ["- none"]),
+    "",
+    "### Human에게 물어볼 질문",
+    ...(input.task.humanApprovalRequired
+      ? [`- Human Vision Owner가 ${input.task.id} 작업을 승인, 거절, 범위 수정, rollback, GPT PM 재질의 중 어떤 방향으로 처리해야 하나요?`]
+      : ["- 현재 task는 human confirmation 없이 dev-only mock flow를 계속 진행할 수 있습니다."]),
+    "",
+    "### Human Decision Needed",
+    input.task.humanApprovalRequired ? "- yes" : "- no",
+    "",
+    "### Safe To Continue",
+    input.task.humanApprovalRequired ? "- Not Safe To Continue" : "- Safe To Continue",
     "",
     "### Codex Engineer Handoff",
     generateCodexHandoff(input.task),

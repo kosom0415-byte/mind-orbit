@@ -24,6 +24,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const memory = readOptional(projectRoot, "agent-memory/project-state-latest.md");
   const codebase = readOptional(projectRoot, "logs/architecture-summary.md");
   const approvals = readOptional(projectRoot, "agent-memory/human-approval-required.md");
+  const confirmations = readOptional(projectRoot, "agent-memory/human-confirmation-required.md");
+  const confirmationLog = readOptional(projectRoot, "logs/human-confirmation.md");
+  const centralExecutor = readOptional(projectRoot, "logs/central-executor.md");
   const runtime = readOptional(projectRoot, "logs/agent-runtime-execution.md");
   const stateMachine = readOptional(projectRoot, "logs/task-state-machine.md");
   const counts = deriveCounts(queue, approvals);
@@ -66,6 +69,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     `- Blocked task count: ${counts.blocked}`,
     `- Human approval required count: ${counts.humanApprovalRequired}`,
     "",
+    "## Human Confirmation Waiting",
+    excerpt(confirmations, "No human confirmation request found."),
+    "",
     "## Task Ownership",
     "- GPT_PM_AGENT: planning, blocked routing, handoff framing",
     "- CODEX_ENGINEER_AGENT: dev implementation and validation",
@@ -78,6 +84,12 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Review Status",
     excerpt(runtime, "No runtime execution log found."),
+    "",
+    "## Central Executor Status",
+    excerpt(centralExecutor, "No central executor log found."),
+    "",
+    "## Human Confirmation Log",
+    excerpt(confirmationLog, "No human confirmation log found."),
     "",
     "## Latest Engineer Report",
     excerpt(engineerReport, "No engineer report found."),
@@ -121,6 +133,12 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Unsafe Tasks Waiting Approval",
     ...(counts.unsafeWaitingApproval.length ? counts.unsafeWaitingApproval.map((item) => `- ${item}`) : ["- None."]),
+    "",
+    "## Mobile Review Files",
+    "- dashboard/ai-organization-dashboard.md",
+    "- agent-memory/human-confirmation-required.md",
+    "- logs/human-confirmation.md",
+    "- logs/central-executor.md",
     "",
     "## Memory Snapshot Status",
     excerpt(memory, "No memory snapshot found."),

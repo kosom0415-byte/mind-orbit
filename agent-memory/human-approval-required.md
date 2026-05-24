@@ -1,13 +1,12 @@
 # Human Approval Required
 
-Updated: 2026-05-24T02:21:56.161Z
+Updated: 2026-05-24T04:48:32.588Z
 
 ## Pending Approval
 - None.
 
 ## Guardrails
-- HIGH and CRITICAL tasks cannot run without approval token fields.
-- Approval token fields: approvalId, approvedBy, approvedAt, approvalReason, approvedScope, expiresAt, status.
-- Production deploy/rollback is never automated.
+- Production deploy/rollback requires explicit human approval.
 - env/API key access is never automated.
+- Git push is not automated by the bridge.
 - Destructive commands are forbidden.
