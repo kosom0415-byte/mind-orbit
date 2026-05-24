@@ -1,9 +1,10 @@
 # Open Questions
 
-Updated: 2026-05-24T04:48:32.588Z
+Updated: 2026-05-24T05:22:37.891Z
 
 ## Pending
-- None.
+- [task-queue/mock-ask-gpt-task] Human asked GPT PM: Ask GPT PM for a safer scope if needed.
+- [human-approval/mock-modify-scope-task] Human approval required before continuing: Human response task mock-modify-scope-task (CRITICAL)
 
 ## Resolved
 - None.

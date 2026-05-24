@@ -68,6 +68,7 @@ const APPROVAL_REQUEST_PATH = "agent-memory/approval-request.md";
 const HUMAN_CONFIRMATION_PATH = "agent-memory/human-confirmation-required.md";
 const NEXT_CODEX_HANDOFF_PATH = "agent-memory/next-codex-handoff.md";
 const BRIDGE_LOG_PATH = "logs/gpt-codex-bridge.md";
+const HUMAN_APPROVAL_APPLY_REPORT_PATH = "logs/human-approval-apply-report.md";
 const STATE_BLOCK_START = "<!-- task-queue-state";
 const STATE_BLOCK_END = "-->";
 
@@ -85,7 +86,7 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
   ensureDirectories(projectRoot);
 
   const generatedAt = new Date().toISOString();
-  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, APPROVAL_REQUEST_PATH, HUMAN_CONFIRMATION_PATH];
+  const filesRead = [GPT_PM_REPORT_PATH, ENGINEER_REPORT_PATH, TASK_QUEUE_PATH, OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, APPROVAL_REQUEST_PATH, HUMAN_CONFIRMATION_PATH, HUMAN_APPROVAL_APPLY_REPORT_PATH];
   const gptPmReport = readOptional(projectRoot, GPT_PM_REPORT_PATH);
   const engineerReport = readOptional(projectRoot, ENGINEER_REPORT_PATH);
   const queueMarkdown = readOptional(projectRoot, TASK_QUEUE_PATH);
@@ -93,6 +94,7 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
   const previousHumanApproval = readOptional(projectRoot, HUMAN_APPROVAL_PATH);
   const approvalRequest = readOptional(projectRoot, APPROVAL_REQUEST_PATH);
   const humanConfirmation = readOptional(projectRoot, HUMAN_CONFIRMATION_PATH);
+  const approvalApplyReport = readOptional(projectRoot, HUMAN_APPROVAL_APPLY_REPORT_PATH);
   const queueState = parseQueueState(queueMarkdown);
   const engineer = parseEngineerReport(engineerReport);
 
@@ -104,7 +106,7 @@ export function runGptCodexBridge(projectRoot: string, port: AgentBridgePort = m
   const humanApprovals = humanApprovalsFromQueue(queueState, engineer.humanApprovalNeeded, previousHumanApproval, `${approvalRequest}\n${humanConfirmation}`);
   const gptAnswer = port.parseGptAnswer(gptPmReport);
   const nextTask = gptAnswer.nextTask ?? taskFromQueueOrFallback(queueState, questions, generatedAt);
-  const codexHandoff = port.createCodexHandoff(nextTask);
+  const codexHandoff = enrichHandoffWithApproval(port.createCodexHandoff(nextTask), approvalApplyReport);
 
   const filesWritten = [OPEN_QUESTIONS_PATH, HUMAN_APPROVAL_PATH, NEXT_CODEX_HANDOFF_PATH, BRIDGE_LOG_PATH];
   const openQuestionsMarkdown = generateOpenQuestionsMarkdown(generatedAt, questions, previousQuestions);
@@ -278,6 +280,32 @@ function parseGptAnswerToCodexTask(markdown: string): GptAnswerParseResult {
       nextSuggestedTask: "Execute the handoff in Codex and report back to GPT PM.",
     },
   };
+}
+
+function enrichHandoffWithApproval(handoff: string, approvalApplyReport: string): string {
+  if (!approvalApplyReport.trim()) return handoff;
+  const action = readLineValue(approvalApplyReport, "Action");
+  const decision = readLineValue(approvalApplyReport, "Decision");
+  const task = readLineValue(approvalApplyReport, "Task");
+  if (!action || action === "noop") return handoff;
+
+  const extra =
+    action === "approved-to-pending"
+      ? ["### Approved Scope", `- Human response approved task ${task}. Codex may proceed only within the approved scope.`]
+      : action === "rejected-to-cancelled"
+        ? ["### Safer Alternative", `- Human rejected task ${task}. Ask GPT PM for a safer replacement before Codex proceeds.`]
+        : action === "scope-modification-requested"
+          ? ["### Scope Restriction", `- Human requested modified scope for ${task}. Codex must wait for narrowed GPT PM handoff.`]
+          : action === "question-added"
+            ? ["### GPT PM Follow-Up Required", `- Human requested GPT PM clarification for ${task}. Codex must not execute until answered.`]
+            : ["### Human Response", `- Last decision: ${decision ?? action}`];
+
+  return [handoff.trim(), "", ...extra, ""].join("\n");
+}
+
+function readLineValue(markdown: string, label: string): string | undefined {
+  const match = markdown.match(new RegExp(`(?:^|\\n)\\s*-\\s*${escapeRegExp(label)}\\s*:\\s*(.+)`, "i"));
+  return match?.[1]?.trim();
 }
 
 function parseQueueState(markdown: string): QueueStateLike {

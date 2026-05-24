@@ -135,6 +135,18 @@ export function enforceApprovalGate<T extends ApprovalGateTask>(projectRoot: str
     riskReasons: assessment.reasons,
   };
 
+  if (task.approvalStatus === "rejected" || task.approvalStatus === "expired") {
+    const cancelled = {
+      ...nextTask,
+      queueStatus: "cancelled",
+      status: "cancelled",
+      humanApprovalRequired: false,
+      blockedReason: `Human approval ${task.approvalStatus}.`,
+      updatedAt: generatedAt,
+    } as T;
+    return { task: cancelled, assessment, approval, action: "cancel", message: `Existing ${task.approvalStatus} queue token found.` };
+  }
+
   if (approval?.status === "rejected" || approval?.status === "expired") {
     const cancelled = {
       ...nextTask,
@@ -152,6 +164,18 @@ export function enforceApprovalGate<T extends ApprovalGateTask>(projectRoot: str
 
   if (!assessment.approvalRequired) {
     return { task: nextTask as T, assessment, approval, action: "allow", message: "Approval not required." };
+  }
+
+  if (task.approvalStatus === "approved" && task.approvalId && task.approvedBy) {
+    const approved = {
+      ...nextTask,
+      humanApprovalRequired: false,
+      queueStatus: task.queueStatus === "human_approval_required" || task.queueStatus === "blocked" ? "pending" : task.queueStatus,
+      status: task.status === "needs_human_approval" || task.status === "blocked" ? "queued" : task.status,
+      blockedReason: undefined,
+      updatedAt: generatedAt,
+    } as T;
+    return { task: approved, assessment, approval, action: "allow", message: "Existing approved queue token found." };
   }
 
   if (approval?.status === "approved") {

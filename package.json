@@ -12,6 +12,7 @@
     "agent:queue": "tsx ai-workflow/task-queue.ts",
     "agent:bridge": "tsx ai-workflow/gpt-codex-bridge.ts",
     "agent:approval": "tsx ai-workflow/approval-gate.ts",
+    "agent:approve": "tsx ai-workflow/apply-human-approval.ts",
     "agent:confirm": "tsx ai-workflow/human-confirmation-flow.ts",
     "agent:executor": "tsx ai-workflow/central-executor.ts",
     "agent:runtime": "tsx ai-workflow/agent-executor.ts",

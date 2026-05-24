@@ -1,6 +1,6 @@
 # AI Organization Dashboard
 
-Generated: 2026-05-24T04:48:48.519Z
+Generated: 2026-05-24T05:22:36.375Z
 
 ## Current Workflow Status
 - GPT PM Agent: active via markdown reports
@@ -25,9 +25,9 @@ Generated: 2026-05-24T04:48:48.519Z
 - HUMAN_VISION_OWNER: human-only | max autonomous level 5 | production yes
 
 ## Queue
-- Active queue count: 1
+- Active queue count: 0
 - Blocked task count: 0
-- Human approval required count: 0
+- Human approval required count: 5
 
 ## Human Confirmation Waiting
 # Human Confirmation Required
@@ -50,8 +50,13 @@ Generated: 2026-05-24T04:48:48.519Z
 
 ## Blocked Flows
 # Blocked Tasks
-- Updated: 2026-05-24T02:21:56.161Z
-- None.
+- Updated: 2026-05-24T05:22:18.581Z
+- mock-ask-gpt-task: Human response task mock-ask-gpt-task (CRITICAL)
+-   - Blocked reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
+-   - Recommended safe alternative: narrow scope, split into docs/test-only task, or ask GPT PM for a safer handoff.
+- mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
+-   - Blocked reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
+-   - Recommended safe alternative: narrow scope, split into docs/test-only task, or ask GPT PM for a safer handoff.
 
 ## Review Status
 # Agent Runtime Execution
@@ -87,6 +92,36 @@ Generated: 2026-05-24T04:48:48.519Z
 - Production deploy: not performed
 - Rollback: not performed
 - env/API access: not used
+
+## Last Human Response
+# Human Response
+## Pending Response
+- None.
+## Instructions
+- Copy one example from `agent-memory/human-response-template.md`, paste it here, edit values, then run `npm run agent:approve`.
+
+## Human Approval Apply Result
+# Human Approval Apply Report
+- Generated: 2026-05-24T05:22:22.656Z
+- Action: question-added
+- Valid: yes
+- Task: mock-ask-gpt-task
+- Decision: ask-gpt
+- Message: Human response parsed as ask-gpt.
+- Production deploy: not performed
+- Rollback: not performed
+- env/API access: not used
+
+## Approval History Summary
+- | mock-approve-task | CRITICAL | allow | - | Existing approved queue token found. |
+- | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | LOW | allow | - | Approval not required. |
+## 2026-05-24T05:22:22.656Z
+- Action: question-added
+- Valid: yes
+- Task: mock-ask-gpt-task
+- Decision: ask-gpt
+- Approved by: Human Vision Owner
+- Reason: Mock ask-gpt validation.
 
 ## Latest Engineer Report
 ## Engineer Report
@@ -149,11 +184,15 @@ Generated: 2026-05-24T04:48:48.519Z
 - Reason: Registry, message bus, approval gate, self-heal, and runtime simulation are present; production remains human-gated.
 
 ## Current Risk Level
-- HIGH: runtime review reported dangerous risk.
+- HIGH: human approval is waiting.
 
 ## Safe / Unsafe Tasks
 - Safe task guidance: Ask GPT PM Agent for a LOW-risk documentation or test task.
-- Unsafe waiting approval: none
+- Unsafe waiting approval: Task: mock-modify-scope-task
+- Unsafe waiting approval: Task: mock-ask-gpt-task
+- Unsafe waiting approval: Task: mock-ask-gpt-task
+- Unsafe waiting approval: Task: mock-modify-scope-task
+- Unsafe waiting approval: Task: Touches production/deployment surface.; Touches secret/env/security surface.
 
 ## Inter-Agent Messages
 - GPT_PM_AGENT -> CODEX_ENGINEER_AGENT: TASK_ASSIGN / Assign Document multi-agent runtime architecture to CODEX_ENGINEER_AGENT
@@ -177,7 +216,15 @@ Generated: 2026-05-24T04:48:48.519Z
 - Ask GPT PM Agent for a LOW-risk documentation or test task.
 
 ## Unsafe Tasks Waiting Approval
-- None.
+- Task: mock-modify-scope-task
+- Task: mock-ask-gpt-task
+- Task: mock-ask-gpt-task
+- Task: mock-modify-scope-task
+- Task: Touches production/deployment surface.; Touches secret/env/security surface.
+
+## Approved / Cancelled Queue Changes
+- Approved/pending: none
+- Cancelled: mock-reject-task: Human response task mock-reject-task
 
 ## Mobile Review Files
 - dashboard/ai-organization-dashboard.md

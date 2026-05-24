@@ -27,6 +27,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const confirmations = readOptional(projectRoot, "agent-memory/human-confirmation-required.md");
   const confirmationLog = readOptional(projectRoot, "logs/human-confirmation.md");
   const centralExecutor = readOptional(projectRoot, "logs/central-executor.md");
+  const humanResponse = readOptional(projectRoot, "agent-memory/human-response.md");
+  const approvalApplyReport = readOptional(projectRoot, "logs/human-approval-apply-report.md");
+  const approvalHistory = readOptional(projectRoot, "logs/approval-history.md");
   const runtime = readOptional(projectRoot, "logs/agent-runtime-execution.md");
   const stateMachine = readOptional(projectRoot, "logs/task-state-machine.md");
   const counts = deriveCounts(queue, approvals);
@@ -91,6 +94,15 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "## Human Confirmation Log",
     excerpt(confirmationLog, "No human confirmation log found."),
     "",
+    "## Last Human Response",
+    excerpt(humanResponse, "No human response file found."),
+    "",
+    "## Human Approval Apply Result",
+    excerpt(approvalApplyReport, "No approval apply report found."),
+    "",
+    "## Approval History Summary",
+    excerpt(lastLines(approvalHistory, 12), "No approval history found."),
+    "",
     "## Latest Engineer Report",
     excerpt(engineerReport, "No engineer report found."),
     "",
@@ -134,6 +146,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "## Unsafe Tasks Waiting Approval",
     ...(counts.unsafeWaitingApproval.length ? counts.unsafeWaitingApproval.map((item) => `- ${item}`) : ["- None."]),
     "",
+    "## Approved / Cancelled Queue Changes",
+    approvedCancelledSummary(queue),
+    "",
     "## Mobile Review Files",
     "- dashboard/ai-organization-dashboard.md",
     "- agent-memory/human-confirmation-required.md",
@@ -150,6 +165,31 @@ export function generateOrganizationDashboard(projectRoot: string): string {
 
   writeFileSync(join(projectRoot, DASHBOARD_PATH), markdown, "utf8");
   return markdown;
+}
+
+function approvedCancelledSummary(queueMarkdown: string): string {
+  const pending = readSection(queueMarkdown, "Pending");
+  const cancelled = readSection(queueMarkdown, "Cancelled");
+  return [
+    pending && !/-\s*none/i.test(pending) ? `- Approved/pending: ${compactSection(pending)}` : "- Approved/pending: none",
+    cancelled && !/-\s*none/i.test(cancelled) ? `- Cancelled: ${compactSection(cancelled)}` : "- Cancelled: none",
+  ].join("\n");
+}
+
+function compactSection(section: string): string {
+  return section
+    .split("\n")
+    .map((line) => line.replace(/^\s*-\s*/, "").trim())
+    .filter(Boolean)
+    .slice(0, 5)
+    .join("; ");
+}
+
+function lastLines(markdown: string, count: number): string {
+  return markdown
+    .split("\n")
+    .slice(-count)
+    .join("\n");
 }
 
 function currentRiskLevel(counts: DashboardCounts, runtimeMarkdown: string): string {

@@ -1,9 +1,46 @@
 # Approval Request
 
-Updated: 2026-05-24T02:21:56.161Z
+Updated: 2026-05-24T05:22:18.581Z
 
 ## Pending Approval
-- None.
+- Task: mock-ask-gpt-task
+  - Title: Human response task mock-ask-gpt-task
+  - Risk: CRITICAL
+  - Score: 100
+  - Reason: Touches production/deployment surface.; Touches secret/env/security surface.
+  - Required response format:
+    - Approval ID: approval-mock-ask-gpt-task
+    - Task: mock-ask-gpt-task
+    - Status: approved | rejected
+    - Approved By: <human name>
+    - Approved Scope: <task-only | listed files | exact command>
+    - Expires At: <ISO timestamp>
+    - Reason: <why this is safe or denied>
+  - Recommended choices:
+    - A. approve
+    - B. reject
+    - C. modify scope
+    - D. rollback
+    - E. ask GPT PM
+- Task: mock-modify-scope-task
+  - Title: Human response task mock-modify-scope-task
+  - Risk: CRITICAL
+  - Score: 100
+  - Reason: Touches production/deployment surface.; Touches secret/env/security surface.
+  - Required response format:
+    - Approval ID: approval-mock-modify-scope-task
+    - Task: mock-modify-scope-task
+    - Status: approved | rejected
+    - Approved By: <human name>
+    - Approved Scope: <task-only | listed files | exact command>
+    - Expires At: <ISO timestamp>
+    - Reason: <why this is safe or denied>
+  - Recommended choices:
+    - A. approve
+    - B. reject
+    - C. modify scope
+    - D. rollback
+    - E. ask GPT PM
 
 ## Safety
 - Approval request does not perform deploy, git push, env/API access, or destructive commands.

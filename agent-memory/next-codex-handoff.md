@@ -42,3 +42,6 @@
 
 ### Commit Message
 - Use agentloop for live memorybased task selection
+
+### GPT PM Follow-Up Required
+- Human requested GPT PM clarification for mock-ask-gpt-task. Codex must not execute until answered.

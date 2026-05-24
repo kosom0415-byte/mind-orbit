@@ -1,6 +1,6 @@
 # GPT Codex Bridge Log
 
-Generated: 2026-05-24T04:48:32.588Z
+Generated: 2026-05-24T05:22:37.891Z
 
 ## Flow
 - agent:loop creates GPT PM and Codex reports.
@@ -16,6 +16,7 @@ Generated: 2026-05-24T04:48:32.588Z
 - agent-memory/human-approval-required.md
 - agent-memory/approval-request.md
 - agent-memory/human-confirmation-required.md
+- logs/human-approval-apply-report.md
 
 ## Files Written
 - agent-memory/open-questions.md
@@ -24,10 +25,15 @@ Generated: 2026-05-24T04:48:32.588Z
 - logs/gpt-codex-bridge.md
 
 ## GPT PM Questions
-- None.
+- [task-queue/mock-ask-gpt-task] Human asked GPT PM: Ask GPT PM for a safer scope if needed.
+- [human-approval/mock-modify-scope-task] Human approval required before continuing: Human response task mock-modify-scope-task (CRITICAL)
 
 ## Human Approval Required
-- None.
+- mock-modify-scope-task: Human response task mock-modify-scope-task
+- mock-ask-gpt-task: Human response task mock-ask-gpt-task
+- mock-ask-gpt-task: Human response task mock-modify-scope-task
+- mock-modify-scope-task: Approval request
+- Touches production/deployment surface.; Touches secret/env/security surface.: Approval request
 
 ## Mock GPT Answer Parser
 - Mock parser detected a next task.
@@ -78,3 +84,6 @@ Generated: 2026-05-24T04:48:32.588Z
 
 ### Commit Message
 - Use agentloop for live memorybased task selection
+
+### GPT PM Follow-Up Required
+- Human requested GPT PM clarification for mock-ask-gpt-task. Codex must not execute until answered.
