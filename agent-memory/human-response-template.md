@@ -17,6 +17,63 @@ npm run agent:approve
 - approvedBy: Human Vision Owner name
 - timestamp: ISO timestamp
 
+## Mobile One-Tap Style Blocks
+
+Copy one of these short blocks on mobile, then replace `approval-task-id` and `task-id` from the dashboard.
+
+### One-Tap Approve
+
+- approvalId: approval-task-id
+- taskId: task-id
+- decision: approve
+- approvedScope: docs-only; dev-branch-only; build-required
+- reason: Approved for the limited safe scope shown in the dashboard.
+- requestedChanges: none
+- approvedBy: Human Vision Owner
+- timestamp: 2026-05-24T00:00:00.000Z
+
+### One-Tap Reject
+
+- approvalId: approval-task-id
+- taskId: task-id
+- decision: reject
+- approvedScope: none
+- reason: Risk is too high or the scope is unclear.
+- requestedChanges: Propose a smaller task.
+- approvedBy: Human Vision Owner
+- timestamp: 2026-05-24T00:00:00.000Z
+
+### One-Tap Safer Alternative
+
+- approvalId: approval-task-id
+- taskId: task-id
+- decision: modify-scope
+- approvedScope: documentation-only; no app runtime files; no deploy
+- reason: Narrow the task before Codex proceeds.
+- requestedChanges: Split into docs/logs/dashboard only and return for review.
+- approvedBy: Human Vision Owner
+- timestamp: 2026-05-24T00:00:00.000Z
+
+### One-Tap Ask GPT
+
+- approvalId: approval-task-id
+- taskId: task-id
+- decision: ask-gpt
+- approvedScope: none yet
+- reason: GPT PM should clarify product/risk tradeoff first.
+- requestedChanges: Ask GPT PM for a safer handoff.
+- approvedBy: Human Vision Owner
+- timestamp: 2026-05-24T00:00:00.000Z
+
+## Risk Summary Checklist
+
+- Risk level:
+- Impact summary:
+- Affected files:
+- Rollback candidate:
+- Browser validation required: yes
+- Production action allowed: no
+
 ## APPROVE Example
 
 - approvalId: approval-human-confirmation-from-engineer-report

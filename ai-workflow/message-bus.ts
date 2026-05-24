@@ -11,7 +11,11 @@ export type RuntimeMessageType =
   | "SELF_HEAL_TRIGGER"
   | "BLOCKED_WARNING"
   | "RELEASE_READY"
-  | "HUMAN_REQUIRED";
+  | "HUMAN_REQUIRED"
+  | "RUNTIME_RISK_ESCALATION"
+  | "REVIEW_CONFLICT"
+  | "APPROVAL_TIMEOUT"
+  | "OWNERSHIP_UPDATE";
 
 export interface RuntimeMessage {
   from: AgentId;
@@ -38,6 +42,44 @@ export function appendMessages(projectRoot: string, messages: RuntimeMessage[]):
   const previous = readMessages(projectRoot);
   const next = [...previous, ...messages].slice(-100);
   writeMessages(projectRoot, next);
+}
+
+export function createRuntimeEscalation(input: {
+  from: AgentId;
+  to: AgentId;
+  taskId: string;
+  summary: string;
+  risk: string;
+}): RuntimeMessage {
+  return createMessage({
+    from: input.from,
+    to: input.to,
+    taskId: input.taskId,
+    severity: input.risk === "DANGEROUS" ? "s1-critical" : "s2-major",
+    type: "RUNTIME_RISK_ESCALATION",
+    summary: input.summary,
+    payload: { risk: input.risk },
+    requiresApproval: input.risk === "DANGEROUS",
+  });
+}
+
+export function createOwnershipUpdate(input: {
+  from: AgentId;
+  to: AgentId;
+  taskId: string;
+  owner: AgentId;
+  summary: string;
+}): RuntimeMessage {
+  return createMessage({
+    from: input.from,
+    to: input.to,
+    taskId: input.taskId,
+    severity: "s3-minor",
+    type: "OWNERSHIP_UPDATE",
+    summary: input.summary,
+    payload: { owner: input.owner },
+    requiresApproval: false,
+  });
 }
 
 export function writeMessages(projectRoot: string, messages: RuntimeMessage[]): void {

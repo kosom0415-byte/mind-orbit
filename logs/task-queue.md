@@ -1,6 +1,6 @@
 # Autonomous Task Queue
 
-Generated: 2026-05-24T05:22:22.656Z
+Generated: 2026-05-24T05:47:46.414Z
 
 ## Summary
 - Pending: 0
@@ -9,34 +9,98 @@ Generated: 2026-05-24T05:22:22.656Z
 - Completed: 2
 - Cancelled: 1
 - Human approval required: 1
-- Next action: Ask GPT PM to answer human clarification request.
+- Next action: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
 
 ## Pending
 - none
 
+## Running
+- none
+
 ## Blocked
-- mock-ask-gpt-task: Human response task mock-ask-gpt-task
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| mock-ask-gpt-task | high | s1-critical | LOW | pending | 0/2 | human | Human response task mock-ask-gpt-task |
 
 ## Human Approval Required
-- mock-modify-scope-task: Human response task mock-modify-scope-task
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| mock-modify-scope-task | high | s1-critical | CRITICAL | pending | 0/2 | human | Human response task mock-modify-scope-task |
 
 ## Cancelled
-- mock-reject-task: Human response task mock-reject-task
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| mock-reject-task | high | s1-critical | LOW | rejected | 0/2 | human | Human response task mock-reject-task |
 
 ## Completed
-- mock-approve-task: Human response task mock-approve-task
-- auto-use-ai-workflow-orchestrator-ts-as-the-local-mod: Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| mock-approve-task | high | s1-critical | CRITICAL | approved | 1/2 | human | Human response task mock-approve-task |
+| auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | low | s3-minor | LOW | none | 1/2 | codex-engineer | Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation. |
+
+## Recent Failed Task History
+| ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| mock-ask-gpt-task | high | s1-critical | LOW | pending | 0/2 | human | Human response task mock-ask-gpt-task |
+
+## Codebase Impact
+- Production risk: medium
+- Related files:
+  - app/page.tsx
+  - ai-workflow/orchestrator.ts
+  - ai-workflow/approval-gate.ts
+  - app/components/EdgeLayer.tsx
+  - app/components/NodeLayer.tsx
+- Risk files:
+  - app/page.tsx
+  - app/globals.css
+  - app/components/EdgeLayer.tsx
+  - app/components/NodeLayer.tsx
+  - hooks/useGestures.ts
+  - hooks/useInteractionState.ts
+  - hooks/useSelection.ts
+  - hooks/useViewport.ts
 
 ## Safety
 - Production deploy: not automated
 - env/API key access: not used
 - OpenAI API calls: mocked / disabled
+- Infinite retry protection: enabled
 
 <!-- task-queue-state
 {
   "version": 1,
-  "generatedAt": "2026-05-24T05:22:22.656Z",
+  "generatedAt": "2026-05-24T05:47:46.414Z",
   "tasks": [
+    {
+      "id": "mock-modify-scope-task",
+      "title": "Human response task mock-modify-scope-task",
+      "goal": "docs-only mock validation; no production deploy; no env/API access",
+      "status": "needs_human_approval",
+      "owner": "human",
+      "priority": "high",
+      "branch": "dev",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "productionSafeMode": true,
+      "humanApprovalRequired": true,
+      "approvalTypes": [
+        "high_risk_task"
+      ],
+      "createdAt": "2026-05-24T05:19:44.321Z",
+      "updatedAt": "2026-05-24T05:47:46.414Z",
+      "queueStatus": "human_approval_required",
+      "severity": "s1-critical",
+      "riskLevel": "CRITICAL",
+      "riskReasons": [
+        "Touches production/deployment surface.",
+        "Touches secret/env/security surface."
+      ],
+      "approvalStatus": "pending",
+      "approvalId": "approval-mock-modify-scope-task",
+      "blockedReason": "Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.",
+      "context": "\nRequested scope: docs-only mock validation; no production deploy; no env/API access"
+    },
     {
       "id": "mock-ask-gpt-task",
       "title": "Human response task mock-ask-gpt-task",
@@ -56,42 +120,12 @@ Generated: 2026-05-24T05:22:22.656Z
       "updatedAt": "2026-05-24T05:22:22.656Z",
       "queueStatus": "blocked",
       "severity": "s1-critical",
-      "riskLevel": "CRITICAL",
+      "riskLevel": "LOW",
       "riskReasons": [
-        "Touches production/deployment surface.",
-        "Touches secret/env/security surface."
+        "No approval-gated risk pattern detected."
       ],
       "approvalStatus": "pending",
       "blockedReason": "Human asked GPT PM: Ask GPT PM for a safer scope if needed."
-    },
-    {
-      "id": "mock-modify-scope-task",
-      "title": "Human response task mock-modify-scope-task",
-      "goal": "docs-only mock validation; no production deploy; no env/API access",
-      "status": "needs_human_approval",
-      "owner": "human",
-      "priority": "high",
-      "branch": "dev",
-      "attempts": 0,
-      "maxAttempts": 2,
-      "productionSafeMode": true,
-      "humanApprovalRequired": true,
-      "approvalTypes": [
-        "high_risk_task"
-      ],
-      "createdAt": "2026-05-24T05:19:44.321Z",
-      "updatedAt": "2026-05-24T05:22:18.581Z",
-      "queueStatus": "human_approval_required",
-      "severity": "s1-critical",
-      "riskLevel": "CRITICAL",
-      "riskReasons": [
-        "Touches production/deployment surface.",
-        "Touches secret/env/security surface."
-      ],
-      "approvalStatus": "pending",
-      "approvalId": "approval-mock-modify-scope-task",
-      "blockedReason": "Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.",
-      "context": "\nRequested scope: docs-only mock validation; no production deploy; no env/API access"
     },
     {
       "id": "mock-reject-task",
@@ -109,7 +143,7 @@ Generated: 2026-05-24T05:22:22.656Z
         "high_risk_task"
       ],
       "createdAt": "2026-05-24T05:19:25.225Z",
-      "updatedAt": "2026-05-24T05:22:18.581Z",
+      "updatedAt": "2026-05-24T05:47:46.414Z",
       "queueStatus": "cancelled",
       "severity": "s1-critical",
       "riskLevel": "LOW",
@@ -136,7 +170,7 @@ Generated: 2026-05-24T05:22:22.656Z
         "high_risk_task"
       ],
       "createdAt": "2026-05-24T05:19:22.870Z",
-      "updatedAt": "2026-05-24T05:22:18.581Z",
+      "updatedAt": "2026-05-24T05:47:46.414Z",
       "queueStatus": "completed",
       "severity": "s1-critical",
       "riskLevel": "CRITICAL",
@@ -184,14 +218,41 @@ Generated: 2026-05-24T05:22:22.656Z
       ]
     }
   ],
-  "failedHistory": [],
-  "nextAction": "Ask GPT PM to answer human clarification request.",
+  "failedHistory": [
+    {
+      "id": "mock-ask-gpt-task",
+      "title": "Human response task mock-ask-gpt-task",
+      "goal": "docs-only mock validation",
+      "status": "blocked",
+      "owner": "human",
+      "priority": "high",
+      "branch": "dev",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "productionSafeMode": true,
+      "humanApprovalRequired": false,
+      "approvalTypes": [
+        "high_risk_task"
+      ],
+      "createdAt": "2026-05-24T05:19:41.036Z",
+      "updatedAt": "2026-05-24T05:22:22.656Z",
+      "queueStatus": "blocked",
+      "severity": "s1-critical",
+      "riskLevel": "LOW",
+      "riskReasons": [
+        "No approval-gated risk pattern detected."
+      ],
+      "approvalStatus": "pending",
+      "blockedReason": "Human asked GPT PM: Ask GPT PM for a safer scope if needed."
+    }
+  ],
+  "nextAction": "Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task",
   "codebaseImpact": {
     "relatedFiles": [
       "app/page.tsx",
       "ai-workflow/orchestrator.ts",
-      "app/components/EdgeLayer.tsx",
       "ai-workflow/approval-gate.ts",
+      "app/components/EdgeLayer.tsx",
       "app/components/NodeLayer.tsx"
     ],
     "riskFiles": [

@@ -1,20 +1,12 @@
 # Human Approval Required
 
-Updated: 2026-05-24T05:22:37.891Z
+Updated: 2026-05-24T05:47:50.123Z
 
 ## Pending Approval
 - Task: mock-modify-scope-task
   - Title: Human response task mock-modify-scope-task
   - Reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
   - Approval types: high_risk_task
-- Task: mock-ask-gpt-task
-  - Title: Human response task mock-ask-gpt-task
-  - Reason: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Approval types: human_review
-- Task: mock-ask-gpt-task
-  - Title: Human response task mock-modify-scope-task
-  - Reason: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Approval types: human_review
 - Task: mock-modify-scope-task
   - Title: Approval request
   - Reason: <why this is safe or denied>

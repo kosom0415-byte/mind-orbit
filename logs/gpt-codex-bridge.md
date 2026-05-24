@@ -1,6 +1,6 @@
 # GPT Codex Bridge Log
 
-Generated: 2026-05-24T05:22:37.891Z
+Generated: 2026-05-24T05:47:50.123Z
 
 ## Flow
 - agent:loop creates GPT PM and Codex reports.
@@ -30,13 +30,11 @@ Generated: 2026-05-24T05:22:37.891Z
 
 ## Human Approval Required
 - mock-modify-scope-task: Human response task mock-modify-scope-task
-- mock-ask-gpt-task: Human response task mock-ask-gpt-task
-- mock-ask-gpt-task: Human response task mock-modify-scope-task
 - mock-modify-scope-task: Approval request
 - Touches production/deployment surface.; Touches secret/env/security surface.: Approval request
 
 ## Mock GPT Answer Parser
-- Mock parser detected a next task.
+- Mock parser detected approval or go-ahead language.
 - Real OpenAI API calls are disabled.
 
 ## Next Codex Handoff
@@ -84,6 +82,3 @@ Generated: 2026-05-24T05:22:37.891Z
 
 ### Commit Message
 - Use agentloop for live memorybased task selection
-
-### GPT PM Follow-Up Required
-- Human requested GPT PM clarification for mock-ask-gpt-task. Codex must not execute until answered.

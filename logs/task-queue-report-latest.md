@@ -3,7 +3,7 @@
 ### Task
 - 요청 요약: 지속 실행 가능한 task queue 구조 검증
 - Branch: dev
-- Generated: 2026-05-24T05:22:18.581Z
+- Generated: 2026-05-24T05:47:46.414Z
 
 ### Changes
 - Created or updated markdown-backed task queue state
@@ -15,29 +15,28 @@
 - Selected task: none
 - Selected status: none
 - Selected risk: none
-- Next action: Ask human approval for mock-ask-gpt-task: Human response task mock-ask-gpt-task
+- Next action: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
 
 ### Approval Required
-- mock-ask-gpt-task: Human response task mock-ask-gpt-task (CRITICAL)
 - mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
 
 ### Blocked Tasks
-- mock-ask-gpt-task: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
 - mock-modify-scope-task: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
+- mock-ask-gpt-task: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 
 ### Safe To Continue
 - Not safe to continue automatically. Human/GPT PM decision required.
 
 ### GPT PM Next-Step Recommendation
-- Ask human approval for mock-ask-gpt-task: Human response task mock-ask-gpt-task
+- Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
 
 ### Codebase Impact
 - Production risk: medium
 - Related files:
   - app/page.tsx
   - ai-workflow/orchestrator.ts
-  - app/components/EdgeLayer.tsx
   - ai-workflow/approval-gate.ts
+  - app/components/EdgeLayer.tsx
   - app/components/NodeLayer.tsx
 - Risk files:
   - app/page.tsx
@@ -53,7 +52,6 @@
 - Ask GPT PM Agent for a new task.
 
 ### Human Approval Needed
-- mock-ask-gpt-task: Human response task mock-ask-gpt-task
 - mock-modify-scope-task: Human response task mock-modify-scope-task
 
 ### Risks / Rollback

@@ -1,6 +1,6 @@
 # Failure History
 
-## 2026-05-23T09:13:10.709Z - production-tdz-runtime
+## 2026-05-24T05:39:21.589Z - production-tdz-runtime
 
 - Type: cannot_access_before_initialization
 - Severity: critical
@@ -8,10 +8,10 @@
 - Retry count: 1
 - Retry allowed: yes
 - Blocked escalation: yes
-- Recent stable commit: 87db483 Add long-term memory compression layer
-- Rollback candidate: 87db483 Add long-term memory compression layer
+- Recent stable commit: d308eb3
+- Rollback candidate: d308eb3
 
-## 2026-05-23T09:13:10.718Z - hydration-warning
+## 2026-05-24T05:39:21.605Z - hydration-warning
 
 - Type: hydration_mismatch
 - Severity: high
@@ -19,10 +19,10 @@
 - Retry count: 1
 - Retry allowed: no
 - Blocked escalation: no
-- Recent stable commit: 87db483 Add long-term memory compression layer
+- Recent stable commit: d308eb3
 - Rollback candidate: Prefer narrow fix before rollback.
 
-## 2026-05-23T09:13:10.727Z - excessive-rerender
+## 2026-05-24T05:39:21.617Z - excessive-rerender
 
 - Type: excessive_rerender
 - Severity: critical
@@ -30,5 +30,5 @@
 - Retry count: 1
 - Retry allowed: yes
 - Blocked escalation: yes
-- Recent stable commit: 87db483 Add long-term memory compression layer
-- Rollback candidate: 87db483 Add long-term memory compression layer
+- Recent stable commit: d308eb3
+- Rollback candidate: d308eb3

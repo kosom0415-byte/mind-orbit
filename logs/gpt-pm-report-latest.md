@@ -1,7 +1,7 @@
 ## GPT PM Agent Report
 
 ### Current Status
-- Generated: 2026-05-24T02:21:55.741Z
+- Generated: 2026-05-24T05:39:21.560Z
 - Task ID: task-001
 - Task: Document AI collaboration loop
 - Status: queued
@@ -24,6 +24,21 @@
 
 ### Approval Required
 - none
+
+### Blocked Tasks
+- none
+
+### High-Risk Changes
+- none
+
+### Human에게 물어볼 질문
+- 현재 task는 human confirmation 없이 dev-only mock flow를 계속 진행할 수 있습니다.
+
+### Human Decision Needed
+- no
+
+### Safe To Continue
+- Safe To Continue
 
 ### Codex Engineer Handoff
 ## Codex Handoff
@@ -53,6 +68,7 @@
 - Small dev-branch fixes
 - Documentation updates
 - Type-safe refactors that preserve behavior
+- Execute only tasks explicitly approved by GPT PM and not blocked by approval gate
 
 ### Ask GPT Before
 - Product direction changes
@@ -62,6 +78,7 @@
 
 ### Human Approval Required
 - none
+- Codex must not execute HIGH/CRITICAL tasks until GPT PM has asked Human Vision Owner and approval token is recorded.
 
 ### Validation Required
 - npm run build

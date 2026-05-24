@@ -54,6 +54,7 @@ const FAILURE_HISTORY_PATH = "logs/failure-history.md";
 const SELF_HEAL_ACTIONS_PATH = "logs/self-heal-actions.md";
 const KNOWN_FAILURES_PATH = "agent-memory/known-failures.md";
 const RECOVERY_PATTERNS_PATH = "agent-memory/recovery-patterns.md";
+const RUNTIME_FAILURE_PATTERNS_PATH = "agent-memory/runtime-failure-patterns.md";
 
 const SAMPLE_FAILURES: Array<{ name: string; text: string }> = [
   {
@@ -191,6 +192,12 @@ export function writeSelfHealReports(projectRoot: string, snapshots: FailureSnap
   writeFileSync(join(projectRoot, SELF_HEAL_ACTIONS_PATH), generateSelfHealActions(snapshots), "utf8");
   writeFileSync(join(projectRoot, KNOWN_FAILURES_PATH), generateKnownFailures(snapshots), "utf8");
   writeFileSync(join(projectRoot, RECOVERY_PATTERNS_PATH), generateRecoveryPatterns(), "utf8");
+  writeFileSync(join(projectRoot, RUNTIME_FAILURE_PATTERNS_PATH), generateRuntimeFailurePatterns(snapshots), "utf8");
+}
+
+export function createRuntimeRecoverySnapshot(projectRoot: string, runtimeMarkdown: string): FailureSnapshot {
+  const errorText = extractRuntimeErrorText(runtimeMarkdown);
+  return createRecoveryPlan(projectRoot, "runtime-vision-latest", errorText);
 }
 
 function classification(
@@ -355,6 +362,43 @@ function generateRecoveryPatterns(): string {
     "## Next Automation Recommendation",
     "- Connect self-heal dry-run output to task queue so risky auto-fix candidates become blocked tasks with approval requirements.",
   ].join("\n");
+}
+
+function generateRuntimeFailurePatterns(snapshots: FailureSnapshot[]): string {
+  const critical = snapshots.filter((snapshot) => snapshot.plan.classification.severity === "critical");
+  return [
+    "# Runtime Failure Patterns",
+    "",
+    `Generated: ${new Date().toISOString()}`,
+    "",
+    "## Active Runtime Patterns",
+    ...(snapshots.length
+      ? snapshots.map((snapshot) => `- ${snapshot.inputName}: ${snapshot.plan.classification.type} / ${snapshot.plan.classification.severity}`)
+      : ["- none"]),
+    "",
+    "## Critical Recovery Bias",
+    ...(critical.length
+      ? critical.flatMap((snapshot) => [
+          `- ${snapshot.inputName}`,
+          ...snapshot.plan.autoDisableExperimentalLayer.map((item) => `  - ${item}`),
+        ])
+      : ["- none"]),
+    "",
+    "## Safe Retry Policy",
+    "- Retry at most two times per repeated failure type.",
+    "- If the same runtime crash repeats, stop and escalate to GPT PM plus Human Vision Owner.",
+    "- Prefer disabling experimental render/camera/motion layers before broad rewrites.",
+    "- Build success is not enough; browser runtime validation must pass.",
+    "",
+  ].join("\n");
+}
+
+function extractRuntimeErrorText(runtimeMarkdown: string): string {
+  if (/Runtime crash:\s+yes/i.test(runtimeMarkdown)) return "Render crash detected by runtime vision.";
+  if (/Hydration mismatch:\s+yes/i.test(runtimeMarkdown)) return "Hydration failed because server rendered HTML did not match client.";
+  if (/Excessive rerender:\s+yes/i.test(runtimeMarkdown)) return "Too many re-renders detected by runtime vision.";
+  if (/Blank screen:\s+yes/i.test(runtimeMarkdown)) return "Runtime blank screen render crash detected.";
+  return runtimeMarkdown || "No runtime failure detected.";
 }
 
 function ensureDir(path: string): void {

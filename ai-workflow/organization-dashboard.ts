@@ -12,6 +12,7 @@ interface DashboardCounts {
 }
 
 const DASHBOARD_PATH = "dashboard/ai-organization-dashboard.md";
+const LIVE_DASHBOARD_PATH = "dashboard/live-ai-organization-dashboard.md";
 
 export function generateOrganizationDashboard(projectRoot: string): string {
   ensureDashboardDir(projectRoot);
@@ -31,6 +32,10 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const approvalApplyReport = readOptional(projectRoot, "logs/human-approval-apply-report.md");
   const approvalHistory = readOptional(projectRoot, "logs/approval-history.md");
   const runtime = readOptional(projectRoot, "logs/agent-runtime-execution.md");
+  const runtimeVision = readOptional(projectRoot, "logs/runtime-vision.md");
+  const autoValidation = readOptional(projectRoot, "logs/auto-validation-pipeline.md");
+  const release = readOptional(projectRoot, "logs/release-candidates.md");
+  const executionHistory = readOptional(projectRoot, "logs/execution-history.md");
   const stateMachine = readOptional(projectRoot, "logs/task-state-machine.md");
   const counts = deriveCounts(queue, approvals);
   const agents = listAgents();
@@ -88,8 +93,20 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "## Review Status",
     excerpt(runtime, "No runtime execution log found."),
     "",
+    "## Browser Runtime Validation",
+    excerpt(runtimeVision, "No browser runtime validation found."),
+    "",
+    "## Auto Validation Pipeline",
+    excerpt(autoValidation, "No auto validation pipeline report found."),
+    "",
+    "## Release Safety",
+    excerpt(release, "No release candidate evaluation found."),
+    "",
     "## Central Executor Status",
     excerpt(centralExecutor, "No central executor log found."),
+    "",
+    "## Execution History",
+    excerpt(executionHistory, "No central execution history found."),
     "",
     "## Human Confirmation Log",
     excerpt(confirmationLog, "No human confirmation log found."),
@@ -122,13 +139,30 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "- Build success alone is not production-safe proof",
     "- Browser runtime validation is required before production confidence",
     "",
+    "## Token / Cost Estimate",
+    "- Current mode: local markdown orchestration, no paid model/API calls from scripts.",
+    "- Estimated token pressure: medium, reduced by memory compression and latest-state summaries.",
+    "- Cost risk: low while real OpenAI API integration remains disabled.",
+    "",
+    "## Queue Health",
+    `- Active: ${counts.activeQueue}`,
+    `- Blocked: ${counts.blocked}`,
+    `- Approval waiting: ${counts.humanApprovalRequired}`,
+    `- Retry storms: ${/Retry limit|Infinite retry/i.test(queue) ? "possible" : "none detected"}`,
+    "",
+    "## Dangerous Command Attempts",
+    dangerousCommandSummary(executionHistory),
+    "",
     "## Autonomous Maturity Level",
-    `- Score: ${maturity.score}/5`,
+    `- Score: ${maturity.score}/6`,
     `- Level: ${maturity.label}`,
     `- Reason: ${maturity.reason}`,
     "",
     "## Current Risk Level",
     currentRiskLevel(counts, runtime),
+    "",
+    "## Current Highest Risk",
+    highestRiskSummary(counts, runtimeVision, release),
     "",
     "## Safe / Unsafe Tasks",
     `- Safe task guidance: ${nextSafeTask(queue).replace(/^- /, "")}`,
@@ -151,7 +185,10 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Mobile Review Files",
     "- dashboard/ai-organization-dashboard.md",
+    "- dashboard/live-ai-organization-dashboard.md",
     "- agent-memory/human-confirmation-required.md",
+    "- agent-memory/human-response-template.md",
+    "- agent-memory/human-response.md",
     "- logs/human-confirmation.md",
     "- logs/central-executor.md",
     "",
@@ -164,6 +201,7 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   ].join("\n");
 
   writeFileSync(join(projectRoot, DASHBOARD_PATH), markdown, "utf8");
+  writeFileSync(join(projectRoot, LIVE_DASHBOARD_PATH), markdown, "utf8");
   return markdown;
 }
 
@@ -212,23 +250,42 @@ function calculateMaturity(input: {
   if (input.hasQueue && input.hasBridge && input.hasApprovalGate) score = 3;
   if (score >= 3 && input.hasSelfHeal && input.hasMessageBus) score = 4;
   if (score >= 4 && input.hasRuntime) score = 5;
+  if (score >= 5 && input.hasApprovalGate && input.hasSelfHeal) score = 6;
 
   const labels = [
     "LEVEL 0 manual coding only",
     "LEVEL 1 AI assisted",
     "LEVEL 2 workflow automation",
     "LEVEL 3 multi-agent orchestration",
-    "LEVEL 4 self-healing runtime",
+    "LEVEL 4 runtime validation",
     "LEVEL 5 human-supervised autonomous engineering",
+    "LEVEL 6 production-safe AI organization",
   ];
   return {
     score,
     label: labels[score],
     reason:
-      score >= 5
-        ? "Registry, message bus, approval gate, self-heal, and runtime simulation are present; production remains human-gated."
+      score >= 6
+        ? "Registry, message bus, approval gate, self-heal, runtime validation, and human-gated release evaluation are present."
+        : score >= 5
+          ? "Human-supervised autonomous workflow is present, but production-safe release evidence is still maturing."
         : "Runtime simulation or safety evidence is incomplete.",
   };
+}
+
+function dangerousCommandSummary(executionHistory: string): string {
+  if (!executionHistory.trim()) return "- none recorded";
+  const blocked = (executionHistory.match(/\|\s+blocked\s+\|/gi) ?? []).length;
+  const highRisk = (executionHistory.match(/\|\s+(HIGH|CRITICAL)\s+\|/g) ?? []).length;
+  return [`- Blocked command traces: ${blocked}`, `- High/critical command traces: ${highRisk}`].join("\n");
+}
+
+function highestRiskSummary(counts: DashboardCounts, runtimeVision: string, release: string): string {
+  if (/Decision:\s+DANGEROUS/i.test(release)) return "- Release candidate is DANGEROUS.";
+  if (/Risk:\s+DANGEROUS/i.test(runtimeVision)) return "- Browser runtime validation is DANGEROUS.";
+  if (counts.humanApprovalRequired > 0) return "- Human approval waiting is the highest current risk.";
+  if (counts.blocked > 0) return "- Blocked queue work is the highest current risk.";
+  return "- No critical active risk detected in dashboard inputs.";
 }
 
 function deriveCounts(queueMarkdown: string, approvalMarkdown: string): DashboardCounts {
@@ -308,4 +365,5 @@ function isDirectRun(): boolean {
 if (isDirectRun()) {
   generateOrganizationDashboard(process.cwd());
   console.log(`AI organization dashboard generated: ${DASHBOARD_PATH}`);
+  console.log(`Live dashboard generated: ${LIVE_DASHBOARD_PATH}`);
 }

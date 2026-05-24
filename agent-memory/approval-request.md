@@ -1,27 +1,8 @@
 # Approval Request
 
-Updated: 2026-05-24T05:22:18.581Z
+Updated: 2026-05-24T05:47:46.414Z
 
 ## Pending Approval
-- Task: mock-ask-gpt-task
-  - Title: Human response task mock-ask-gpt-task
-  - Risk: CRITICAL
-  - Score: 100
-  - Reason: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Required response format:
-    - Approval ID: approval-mock-ask-gpt-task
-    - Task: mock-ask-gpt-task
-    - Status: approved | rejected
-    - Approved By: <human name>
-    - Approved Scope: <task-only | listed files | exact command>
-    - Expires At: <ISO timestamp>
-    - Reason: <why this is safe or denied>
-  - Recommended choices:
-    - A. approve
-    - B. reject
-    - C. modify scope
-    - D. rollback
-    - E. ask GPT PM
 - Task: mock-modify-scope-task
   - Title: Human response task mock-modify-scope-task
   - Risk: CRITICAL

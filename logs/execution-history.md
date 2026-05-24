@@ -1,32 +1,38 @@
+# Central Execution History
 
-## 2026-05-23T23:03:02.817Z - execution_allowed
+Generated: 2026-05-24T05:45:20.084Z
 
-- Task: executor-test-low-docs
-- Risk: LOW
-- Command: mock-safe-docs
-- Production deploy: not performed
-- env/API access: not used
+## Summary
+- Total recorded executions: 13
+- Blocked executions: 0
+- High-risk attempts: 4
+- Executor bypass suspicion: no
 
-## 2026-05-23T23:03:02.818Z - execution_blocked
+## Bypass Checks
+- No bypass signal in latest registry window.
 
-- Task: executor-test-high-ui
-- Risk: CRITICAL
-- Reason: Approval gate refused task executor-test-high-ui: High-risk task blocked until human approval is recorded.
-- Suggested safer alternative: Ask GPT PM to narrow scope, produce an approval request, or split the work into a LOW-risk documentation task.
-- Production deploy: not performed
-- env/API access: not used
+## Latest Traces
+| Time | Execution | Kind | Status | Risk | Command Hash | Reason |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-24T05:42:42.312Z | exec-2026-05-24T05-42-42-312Z-16c0e430 | shell | running | LOW | 16c0e4305ac2 | Central executor accepted command. |
+| 2026-05-24T05:42:48.021Z | exec-2026-05-24T05-42-42-312Z-16c0e430 | shell | completed | LOW | 16c0e4305ac2 | Command completed through central executor. |
+| 2026-05-24T05:42:48.022Z | exec-2026-05-24T05-42-48-022Z-1b5645a2 | browser-runtime | failed | CRITICAL | 1b5645a23bd1 | Blank screen or failed load signal detected.; Runtime crash/error text detected. |
+| 2026-05-24T05:44:01.261Z | exec-2026-05-24T05-44-01-261Z-16c0e430 | shell | running | LOW | 16c0e4305ac2 | Central executor accepted command. |
+| 2026-05-24T05:44:07.075Z | exec-2026-05-24T05-44-01-261Z-16c0e430 | shell | completed | LOW | 16c0e4305ac2 | Command completed through central executor. |
+| 2026-05-24T05:44:07.075Z | exec-2026-05-24T05-44-07-075Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Runtime crash/error text detected. |
+| 2026-05-24T05:44:21.931Z | exec-2026-05-24T05-44-21-931Z-1b5645a2 | browser-runtime | failed | CRITICAL | 1b5645a23bd1 | Blank screen or failed load signal detected.; Runtime crash/error text detected. |
+| 2026-05-24T05:44:32.600Z | exec-2026-05-24T05-44-32-600Z-16c0e430 | shell | running | LOW | 16c0e4305ac2 | Central executor accepted command. |
+| 2026-05-24T05:44:38.474Z | exec-2026-05-24T05-44-32-600Z-16c0e430 | shell | completed | LOW | 16c0e4305ac2 | Command completed through central executor. |
+| 2026-05-24T05:44:38.475Z | exec-2026-05-24T05-44-38-475Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Runtime crash/error text detected. |
+| 2026-05-24T05:45:14.473Z | exec-2026-05-24T05-45-14-473Z-16c0e430 | shell | running | LOW | 16c0e4305ac2 | Central executor accepted command. |
+| 2026-05-24T05:45:20.042Z | exec-2026-05-24T05-45-14-473Z-16c0e430 | shell | completed | LOW | 16c0e4305ac2 | Command completed through central executor. |
+| 2026-05-24T05:45:20.042Z | exec-2026-05-24T05-45-20-042Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
 
-# Central Executor
+## Rollback Candidates
+- none
 
-Generated: 2026-05-24T04:48:46.922Z
-
-- Task: central-executor-safe-docs
-- Approval gate: allow
-- Firewall: allowed
-- Human confirmation required: yes
-- Result: blocked
-- Reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
+## Safety
 - Production deploy: not performed
 - Rollback: not performed
-- env/API access: not used
-- Destructive command: not executed
+- env/API key access: not used
+- Destructive commands: blocked before execution
