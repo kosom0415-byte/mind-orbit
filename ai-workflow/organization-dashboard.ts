@@ -38,6 +38,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const executionHistory = readOptional(projectRoot, "logs/execution-history.md");
   const directBridge = readOptional(projectRoot, "logs/direct-bridge.md");
   const taskBus = readOptional(projectRoot, "logs/task-bus.md");
+  const realBridge = readOptional(projectRoot, "logs/real-bridge-runtime.md");
+  const gptApi = readOptional(projectRoot, "agent-memory/gpt-api-response.md");
+  const codexConnector = readOptional(projectRoot, "logs/codex-connector.md");
   const sharedState = readOptional(projectRoot, "agent-memory/shared-state.md");
   const nextExecutable = readOptional(projectRoot, "agent-memory/next-executable-task.md");
   const questionsForGpt = readOptional(projectRoot, "agent-memory/questions-for-gpt.md");
@@ -90,6 +93,15 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Direct Bridge Status",
     excerpt(directBridge, "No direct bridge log found."),
+    "",
+    "## Real Bridge Runtime Status",
+    excerpt(realBridge, "No real bridge runtime log found."),
+    "",
+    "## GPT API Connector Status",
+    excerpt(gptApi, "No GPT API connector result found."),
+    "",
+    "## Codex Connector Status",
+    excerpt(codexConnector, "No Codex connector log found."),
     "",
     "## Task Bus Status",
     excerpt(taskBus, "No task bus log found."),

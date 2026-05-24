@@ -75,6 +75,36 @@ Read these files:
 Write only this file when approving:
 - `agent-memory/human-response.md`
 
+## Real Bridge Operation
+
+Default safe dry-run:
+- `npm run agent:real-bridge`
+
+Live GPT only:
+- `npm run agent:real-bridge -- --live-gpt`
+
+Live Codex only:
+- `npm run agent:real-bridge -- --live-codex`
+
+Live GPT and Codex together:
+- `npm run agent:real-bridge -- --live-gpt --live-codex`
+
+## Live Mode Rules
+
+- Live GPT reads `process.env.OPENAI_API_KEY`; the key must never be printed.
+- `.env.local` is managed by the human and must not be edited by AI.
+- Live Codex uses `codex exec` only through `ai-workflow/codex-connector.ts`.
+- Codex yolo mode and approval bypass are forbidden.
+- HIGH/CRITICAL work is blocked before Codex receives it.
+- Stop live mode if repeated failures, cost spike, rate limit, or unclear approval state appears.
+
+## Cost / Limit Notes
+
+- Dry-run costs nothing.
+- `--live-gpt` can spend OpenAI API credits.
+- `--live-codex` can execute local agent work and must remain workspace-write only.
+- Human Vision Owner decides when live mode is worth the risk.
+
 ## Long Task Instruction Rules
 
 - State forbidden areas.
