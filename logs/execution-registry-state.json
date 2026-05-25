@@ -334,5 +334,72 @@
     "retryCount": 0,
     "rollbackCandidate": "manual approval required before rollback",
     "startedAt": "2026-05-25T04:10:16.862Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-34-20-676Z-238bef4a",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3004",
+    "commandHash": "238bef4a5f6e074aaa6348afb5ce6a6f44cf9133d2f00e71b8ccba69d142db86",
+    "status": "completed",
+    "riskLevel": "LOW",
+    "reason": "No runtime risk signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:34:20.676Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-35-32-854Z-238bef4a",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3004",
+    "commandHash": "238bef4a5f6e074aaa6348afb5ce6a6f44cf9133d2f00e71b8ccba69d142db86",
+    "status": "completed",
+    "riskLevel": "LOW",
+    "reason": "No runtime risk signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:35:32.854Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-39-26-541Z-16c0e430",
+    "taskId": "auto-validation-pipeline",
+    "kind": "shell",
+    "command": "npm run build",
+    "commandHash": "16c0e4305ac213dff39fc82b69b6e08aeeb8758e33cd72d7c409752a70e9f054",
+    "status": "running",
+    "riskLevel": "MEDIUM",
+    "reason": "Central executor accepted command.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:39:26.541Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-39-26-541Z-16c0e430",
+    "taskId": "auto-validation-pipeline",
+    "kind": "shell",
+    "command": "npm run build",
+    "commandHash": "16c0e4305ac213dff39fc82b69b6e08aeeb8758e33cd72d7c409752a70e9f054",
+    "status": "completed",
+    "riskLevel": "MEDIUM",
+    "reason": "Command completed through central executor.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:39:26.541Z",
+    "finishedAt": "2026-05-25T04:39:32.457Z",
+    "outputSummary": "  Finalizing page optimization ...   Collecting build traces ... Route (app) ┌ ○ / ├ ○ /_not-found └ ƒ /api/analyze ○  (Static)   prerendered as static content ƒ  (Dynamic)  server-rendered on demand"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-39-32-458Z-238bef4a",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3004",
+    "commandHash": "238bef4a5f6e074aaa6348afb5ce6a6f44cf9133d2f00e71b8ccba69d142db86",
+    "status": "completed",
+    "riskLevel": "LOW",
+    "reason": "No runtime risk signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:39:32.458Z"
   }
 ]

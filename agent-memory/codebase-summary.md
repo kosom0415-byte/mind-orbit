@@ -1,6 +1,6 @@
 # Codebase Summary
 
-Generated: 2026-05-25T00:34:20.537Z
+Generated: 2026-05-25T04:39:32.475Z
 
 ## Core Surfaces
 - `app/page.tsx`: primary app shell and highest render-risk surface.
@@ -10,7 +10,7 @@ Generated: 2026-05-25T00:34:20.537Z
 - `ai-workflow/*`: autonomous engineering operating system.
 
 ## Most Imported Files
-- ai-workflow/workflow-utils.ts: imported by 30
+- ai-workflow/workflow-utils.ts: imported by 37
 - ai-workflow/approval-gate.ts: imported by 13
 - ai-workflow/orchestrator.ts: imported by 9
 - lib/mind/types.ts: imported by 6
@@ -22,7 +22,7 @@ Generated: 2026-05-25T00:34:20.537Z
 - ai-workflow/message-bus.ts: imported by 3
 
 ## Highest Render Impact
-- ai-workflow/workflow-utils.ts: impact 60, risk medium
+- ai-workflow/workflow-utils.ts: impact 74, risk medium
 - ai-workflow/approval-gate.ts: impact 27, risk medium
 - app/page.tsx: impact 24, risk critical
 - ai-workflow/orchestrator.ts: impact 18, risk medium

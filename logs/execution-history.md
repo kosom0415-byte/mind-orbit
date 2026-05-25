@@ -1,11 +1,11 @@
 # Central Execution History
 
-Generated: 2026-05-25T01:49:46.878Z
+Generated: 2026-05-25T04:39:32.509Z
 
 ## Summary
-- Total recorded executions: 19
+- Total recorded executions: 30
 - Blocked executions: 1
-- High-risk attempts: 6
+- High-risk attempts: 12
 - Executor bypass suspicion: no
 
 ## Bypass Checks
@@ -33,6 +33,17 @@ Generated: 2026-05-25T01:49:46.878Z
 | 2026-05-25T01:49:46.864Z | exec-2026-05-25T01-49-46-864Z-c32f2b1a | git | blocked | HIGH | c32f2b1a66f8 | git push is forbidden in Safe Terminal Mode. Approval not required. Command passed firewall and approval gate. |
 | 2026-05-25T01:49:46.878Z | exec-2026-05-25T01-49-46-878Z-e62b04aa | git | running | LOW | e62b04aadf39 | Central executor accepted command. |
 | 2026-05-25T01:49:46.878Z | exec-2026-05-25T01-49-46-878Z-e62b04aa | git | completed | LOW | e62b04aadf39 | Dry-run mode recorded without shell execution. |
+| 2026-05-25T04:04:35.095Z | exec-2026-05-25T04-04-35-095Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:04:38.946Z | exec-2026-05-25T04-04-38-946Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:08:15.672Z | exec-2026-05-25T04-08-15-672Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:09:02.978Z | exec-2026-05-25T04-09-02-978Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:09:15.374Z | exec-2026-05-25T04-09-15-374Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:10:16.862Z | exec-2026-05-25T04-10-16-862Z-b57a67d8 | browser-runtime | failed | CRITICAL | b57a67d86ddb | Blank screen or failed load signal detected. |
+| 2026-05-25T04:34:20.676Z | exec-2026-05-25T04-34-20-676Z-238bef4a | browser-runtime | completed | LOW | 238bef4a5f6e | No runtime risk signal detected. |
+| 2026-05-25T04:35:32.854Z | exec-2026-05-25T04-35-32-854Z-238bef4a | browser-runtime | completed | LOW | 238bef4a5f6e | No runtime risk signal detected. |
+| 2026-05-25T04:39:26.541Z | exec-2026-05-25T04-39-26-541Z-16c0e430 | shell | running | MEDIUM | 16c0e4305ac2 | Central executor accepted command. |
+| 2026-05-25T04:39:32.457Z | exec-2026-05-25T04-39-26-541Z-16c0e430 | shell | completed | MEDIUM | 16c0e4305ac2 | Command completed through central executor. |
+| 2026-05-25T04:39:32.458Z | exec-2026-05-25T04-39-32-458Z-238bef4a | browser-runtime | completed | LOW | 238bef4a5f6e | No runtime risk signal detected. |
 
 ## Rollback Candidates
 - none

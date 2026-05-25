@@ -1,11 +1,11 @@
 # Decision History
 
-Generated: 2026-05-25T04:09:44.485Z
+Generated: 2026-05-25T04:39:23.661Z
 
 ## Current Decision
 - Runtime health: SAFE
-- Release risk: CRITICAL
-- Queue next action: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
+- Release risk: HIGH
+- Queue next action: Send blocked task to GPT PM Agent: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 - Last approval action: noop
 
 ## Rationale

@@ -1,6 +1,6 @@
 # Runtime Risk Map
 
-Generated: 2026-05-25T00:34:20.555Z
+Generated: 2026-05-25T04:39:32.494Z
 
 ## Highest-Risk Files
 1. app/page.tsx | critical | impact 24

@@ -23,4 +23,4 @@
 
 ## Next Suggested Task
 
-- Use `ai-workflow/orchestrator.ts` as the local model for future task queue, handoff, and report automation.
+- Add a compact search result count to the existing node index search panel while preserving current search behavior.

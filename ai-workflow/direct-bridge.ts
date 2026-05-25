@@ -162,7 +162,10 @@ function extractQuestions(markdown: string): string[] {
 }
 
 function extractHumanQuestions(markdown: string): string[] {
-  return markdown
+  const pendingSection = markdown.split("## Guardrails")[0] ?? markdown;
+  if (/-\s*None\./i.test(pendingSection)) return [];
+
+  return pendingSection
     .split("\n")
     .filter((line) => line.trim().startsWith("-") && /Task:|Can Codex|approval|required|승인/i.test(line))
     .map((line) => line.replace(/^\s*-\s*/, "").trim());

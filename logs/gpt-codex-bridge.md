@@ -1,6 +1,6 @@
 # GPT Codex Bridge Log
 
-Generated: 2026-05-25T04:09:38.590Z
+Generated: 2026-05-25T04:39:23.687Z
 
 ## Flow
 - agent:loop creates GPT PM and Codex reports.
@@ -26,11 +26,8 @@ Generated: 2026-05-25T04:09:38.590Z
 
 ## GPT PM Questions
 - [task-queue/mock-ask-gpt-task] Human asked GPT PM: Ask GPT PM for a safer scope if needed.
-- [human-approval/mock-modify-scope-task] Human approval required before continuing: Human response task mock-modify-scope-task (CRITICAL)
 
 ## Human Approval Required
-- mock-modify-scope-task: Human response task mock-modify-scope-task
-- mock-modify-scope-task: Approval request
 - Touches production/deployment surface.; Touches secret/env/security surface.: Approval request
 
 ## Mock GPT Answer Parser

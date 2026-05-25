@@ -1,16 +1,15 @@
 # Live Codex Readiness
 
-Generated: 2026-05-25T04:09:44.483Z
+Generated: 2026-05-25T04:39:23.658Z
 
 - Ready for live Codex: no
 - Codex CLI available: yes
 - Safe pending task available: no
-- Waiting human: yes
+- Waiting human: no
 - Runtime SAFE: yes
 
 ## Reasons
 - No LOW/MEDIUM safe pending task is available.
-- Human approval is waiting; live Codex must remain blocked.
 
 ## Human Command
 - Live Codex only: `npm run agent:real-bridge -- --live-codex`

@@ -1,6 +1,6 @@
 # Architecture Map
 
-Generated: 2026-05-25T00:34:20.549Z
+Generated: 2026-05-25T04:39:32.488Z
 
 ## Product Runtime
 - app/api/analyze/route.ts: app-route, risk high
@@ -28,14 +28,16 @@ Generated: 2026-05-25T00:34:20.549Z
 - ai-workflow/apply-human-approval.ts: imports 3, imported by 0
 - ai-workflow/approval-gate.ts: imports 1, imported by 13
 - ai-workflow/approval-response-parser.ts: imports 0, imported by 1
+- ai-workflow/approval-runtime-gate.ts: imports 1, imported by 1
 - ai-workflow/architecture-map.ts: imports 1, imported by 1
 - ai-workflow/auto-validation-pipeline.ts: imports 10, imported by 0
 - ai-workflow/autonomous-cycle-manager.ts: imports 13, imported by 0
-- ai-workflow/browser-observer.ts: imports 4, imported by 1
-- ai-workflow/browser-runtime-agent.ts: imports 3, imported by 1
+- ai-workflow/browser-observer.ts: imports 4, imported by 2
+- ai-workflow/browser-runtime-agent.ts: imports 3, imported by 2
+- ai-workflow/browser-validation-loop.ts: imports 3, imported by 1
 - ai-workflow/bug-report-template.md: imports 0, imported by 0
 - ai-workflow/central-executor.ts: imports 3, imported by 0
-- ai-workflow/central-shell-executor.ts: imports 4, imported by 1
+- ai-workflow/central-shell-executor.ts: imports 5, imported by 1
 - ai-workflow/codebase-index.ts: imports 0, imported by 4
 - ai-workflow/codebase-summary-generator.ts: imports 1, imported by 1
 - ai-workflow/codex-connector.ts: imports 3, imported by 1
@@ -55,8 +57,6 @@ Generated: 2026-05-25T00:34:20.549Z
 - ai-workflow/human-supervision-center.ts: imports 1, imported by 0
 - ai-workflow/live-codex-readiness.ts: imports 1, imported by 1
 - ai-workflow/live-openai-readiness.ts: imports 2, imported by 1
-- ai-workflow/live-readiness-check.ts: imports 1, imported by 0
-- ai-workflow/loop-runner.ts: imports 3, imported by 2
 
 ## Control Flow
 1. GPT PM frames task and approval questions.

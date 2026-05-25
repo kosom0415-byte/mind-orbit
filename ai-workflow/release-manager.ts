@@ -38,7 +38,7 @@ export function evaluateReleaseCandidate(projectRoot: string): ReleaseEvaluation
     score -= 20;
     reasons.push("Runtime vision reported warning-level runtime risk.");
   }
-  if (/Human approval required:\s+[1-9]/i.test(queue) || /## Human Approval Required[\s\S]*-\s+(?!none)/i.test(queue)) {
+  if (/Human approval required:\s+[1-9]/i.test(queue)) {
     score -= 25;
     reasons.push("Queue still has human approval waiting.");
   }

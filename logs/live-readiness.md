@@ -1,12 +1,12 @@
 # Live Bridge Readiness
 
-Generated: 2026-05-25T04:09:44.676Z
+Generated: 2026-05-25T04:39:23.876Z
 
 ## Status
 - OPENAI_API_KEY present: no
 - OPENAI_API_KEY value exposed: no
 - codex CLI available: yes
-- Human approval waiting: yes
+- Human approval waiting: no
 - Runtime SAFE: yes
 - Release SAFE: no
 - Live GPT ready: no
@@ -14,7 +14,6 @@ Generated: 2026-05-25T04:09:44.676Z
 
 ## Reasons
 - OPENAI_API_KEY is not present in process env. Key value was not read or logged.
-- Human approval is still waiting; live Codex must remain blocked.
 - Release readiness is DANGEROUS; production remains blocked.
 - Real bridge safety gate is currently blocking Codex execution.
 

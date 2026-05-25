@@ -2176,7 +2176,9 @@ button,
   }
 
   .keyword-index {
-    display: none;
+    bottom: 74px;
+    max-height: 28vh;
+    padding: 12px;
   }
 
   .detail-layer {

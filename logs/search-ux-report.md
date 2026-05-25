@@ -1,6 +1,6 @@
 # Search UX Report
 
-Generated: 2026-05-25T04:09:09.806Z
+Generated: 2026-05-25T04:35:27.029Z
 - Task: Node Search UX Improvement
 - Product change: index search now uses deferred query stabilization.
 - Loading state: shows `검색 중...` while deferred search catches up.

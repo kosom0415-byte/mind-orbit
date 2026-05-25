@@ -1,6 +1,6 @@
 # AI Organization Dashboard
 
-Generated: 2026-05-25T04:10:16.871Z
+Generated: 2026-05-25T04:42:19.209Z
 
 ## Current Workflow Status
 - GPT PM Agent: active via markdown reports
@@ -25,13 +25,13 @@ Generated: 2026-05-25T04:10:16.871Z
 - HUMAN_VISION_OWNER: human-only | max autonomous level 5 | production yes
 
 ## Queue
-- Active queue count: 6
+- Active queue count: 9
 - Blocked task count: 1
-- Human approval required count: 3
+- Human approval required count: 0
 
 ## GPT ↔ Codex Bridge Status
 # GPT Codex Bridge Log
-- Generated: 2026-05-25T04:09:38.590Z
+- Generated: 2026-05-25T04:39:23.687Z
 ## Flow
 - agent:loop creates GPT PM and Codex reports.
 - agent:queue updates markdown-backed task queue state.
@@ -43,18 +43,18 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Direct Bridge Status
 # Direct GPT Codex Bridge
-- Generated: 2026-05-25T04:09:38.228Z
+- Generated: 2026-05-25T04:42:18.849Z
 - Next executable task: none
 - GPT questions: 5
-- Human questions: 12
+- Human questions: 0
 - Blocked tasks: 1
-- Waiting-human tasks: 1
+- Waiting-human tasks: 0
 - API calls: none
 - Production deploy: not performed
 
 ## Real Bridge Runtime Status
 # Real Bridge Runtime
-- Generated: 2026-05-25T04:09:38.280Z
+- Generated: 2026-05-25T04:39:23.335Z
 - Live GPT: no
 - Live Codex: no
 - GPT API called: no
@@ -66,19 +66,19 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Live Readiness Status
 # Live Bridge Readiness
-- Generated: 2026-05-25T04:09:44.676Z
+- Generated: 2026-05-25T04:39:23.876Z
 ## Status
 - OPENAI_API_KEY present: no
 - OPENAI_API_KEY value exposed: no
 - codex CLI available: yes
-- Human approval waiting: yes
+- Human approval waiting: no
 - Runtime SAFE: yes
 - Release SAFE: no
 - Live GPT ready: no
 
 ## GPT API Connector Status
 # GPT API Connector Result
-- Generated: 2026-05-25T04:09:38.288Z
+- Generated: 2026-05-25T04:39:23.345Z
 - Mode: dry-run
 - Model: gpt-5.4-mini
 - API call performed: no
@@ -86,11 +86,11 @@ Generated: 2026-05-25T04:10:16.871Z
 - Human approval required: yes
 ## Response
 # GPT API Response
-- Generated: 2026-05-25T04:09:38.288Z
+- Generated: 2026-05-25T04:39:23.345Z
 
 ## Codex Connector Status
 # Codex Connector
-- Generated: 2026-05-25T04:09:38.280Z
+- Generated: 2026-05-25T04:39:23.335Z
 - Mode: dry-run
 - Executed codex exec: no
 - Blocked: yes
@@ -101,49 +101,49 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Task Bus Status
 # Task Bus
-- Generated: 2026-05-25T04:09:44.464Z
+- Generated: 2026-05-25T04:39:23.637Z
 ## Summary
-- Tasks: 5
+- Tasks: 8
 - Waiting GPT: 1
-- Waiting Human: 1
+- Waiting Human: 0
 - Queued safe candidates: 0
-- Next action: Wait for human approval: mock-modify-scope-task
+- Next action: Ask GPT PM: mock-ask-gpt-task
 ## Tasks
 - | Task | Owner | Status | Risk | Next Action |
 
 ## Shared State Status
 # Shared State
-- Generated: 2026-05-25T04:09:44.409Z
+- Generated: 2026-05-25T04:42:18.961Z
 - Current goal: Document AI collaboration loop
-- Current blocker: 05-25T04:09:38.590Z
-- Current risk: DANGEROUS
-- Approval waiting: 1
+- Current blocker: 05-25T04:39:23.687Z
+- Current risk: WARNING
+- Approval waiting: 0
 - Current executable task: none
-- Next recommended task: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
+- Next recommended task: Send blocked task to GPT PM Agent: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 - Recent failure: Safety
-- Recent stable commit: fc58517 Add safe terminal mode for computer use
+- Recent stable commit: b36afc3 Complete real autonomous product execution workflow
 
 ## Human Supervision Status
 # Human Supervision Center
-- Generated: 2026-05-25T04:09:44.770Z
+- Generated: 2026-05-25T04:39:23.981Z
 ## 지금 내가 승인해야 할 것
-- mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
+- none
 ## 지금 AI끼리 해결 가능한 것
 - none
 ## 지금 위험한 것
-- mock-modify-scope-task: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
 - mock-ask-gpt-task: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 ## 지금 멈춘 것
+- mock-ask-gpt-task: Human response task mock-ask-gpt-task
 
 ## Next Executable Task
 # Next Executable Task
-- Generated: 2026-05-25T04:09:38.228Z
+- Generated: 2026-05-25T04:42:18.849Z
 - Status: none
 - Reason: no safe pending task found; use GPT/Human question files first.
 
 ## Questions For GPT
 # Questions For GPT PM
-- Generated: 2026-05-25T04:09:38.228Z
+- Generated: 2026-05-25T04:42:18.849Z
 - mock-ask-gpt-task: Human response task mock-ask-gpt-task (LOW) needs GPT PM scope decision. Reason: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 - Evaluated severity, priority, blocked state, and approval state
 - Blocked reason: none
@@ -152,24 +152,19 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Questions For Human
 # Questions For Human Vision Owner
-- Generated: 2026-05-25T04:09:38.280Z
-- Real bridge found a HIGH/CRITICAL or approval-gated handoff.
-- Should this be approved, rejected, modified in scope, or sent back to GPT PM?
-- Risk reason: Touches production/deployment surface.
-- Risk reason: Touches secret/env/security surface.
-- Risk reason: Touches auth/security/payment surface.
-- Risk reason: Attempts to automate git push.
+- Generated: 2026-05-25T04:42:18.849Z
+- none
 
 ## Human Confirmation Waiting
 # Human Confirmation Required
-- Updated: 2026-05-24T05:44:24.262Z
+- Updated: 2026-05-25T04:41:30.000Z
 ## Status
-- Required: yes
+- Required: no
 - Approved: no
-- Risk: CRITICAL
-- Reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
+- Risk: none
+- Reason: No current HIGH/CRITICAL task is waiting for Human Vision Owner confirmation.
 ## GPT PM Question For Human Vision Owner
-- Can Codex proceed with "- 요청 요약: Document AI collaboration loop - Branch: dev - Generated: 2026-05-24T05:39:21.560Z" within the approved scope, or should the task be rejected/modified?
+- None.
 ## Response Options
 
 ## Task Ownership
@@ -181,10 +176,8 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Blocked Flows
 # Blocked Tasks
-- Updated: 2026-05-25T04:09:38.529Z
-- mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
--   - Blocked reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
--   - Recommended safe alternative: narrow scope, split into docs/test-only task, or ask GPT PM for a safer handoff.
+- Updated: 2026-05-25T04:39:23.618Z
+- None.
 
 ## Review Status
 # Agent Runtime Execution
@@ -200,19 +193,19 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Browser Runtime Validation
 # Browser Runtime Vision
-- Generated: 2026-05-25T04:09:15.385Z
+- Generated: 2026-05-25T04:39:32.458Z
 ## Target
-- URL: http://127.0.0.1:3001
-- Mode: manual-browser-verification
+- URL: http://127.0.0.1:3004
+- Mode: http-probe
 - Load status: loaded
-- Status code: n/a
+- Status code: 200
 - Title: Mind Orbit
 ## Runtime Signals
 - Risk: SAFE
 
 ## Auto Validation Pipeline
 # Auto Validation Pipeline
-- Generated: 2026-05-25T00:34:20.518Z
+- Generated: 2026-05-25T04:39:26.537Z
 ## Pipeline
 - Build: passed
 - Runtime open: loaded
@@ -224,20 +217,20 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Product Execution Cycle
 # Product Execution Cycle Report
-- Generated: 2026-05-25T04:09:09.806Z
+- Generated: 2026-05-25T04:35:27.029Z
 - Task: Node search UX improvement, camera/zoom safe stabilization, and runtime observation loop.
 - Build: passed
 - Browser risk: WARNING
 - Memory/render risk: SAFE
 - Self-heal issue: release-risk
-- Approval action: waiting-human
-- Safe continue: no
+- Approval action: ask-gpt
+- Safe continue: yes
 ## Product Reports
 
 ## Browser Validation Loop
 # Browser Validation Report
-- Generated: 2026-05-25T04:09:15.387Z
-- Target URL: http://127.0.0.1:3001
+- Generated: 2026-05-25T04:35:32.872Z
+- Target URL: http://127.0.0.1:3004
 - Risk: WARNING
 - Summary: Browser validation passed with visual drift warning.
 - Load failure: no
@@ -248,7 +241,7 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Runtime Memory / Render Observation
 # Runtime Memory Observer
-- Generated: 2026-05-25T04:09:15.387Z
+- Generated: 2026-05-25T04:35:32.872Z
 - Risk: SAFE
 - Memory spike: no
 - Render loop risk: SAFE
@@ -257,24 +250,24 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Live Approval Runtime Gate
 # Live Approval Status
-- Generated: 2026-05-25T04:09:15.398Z
-- Risk: CRITICAL
-- Action: waiting-human
-- Why approval required: High/critical evidence requires Human Vision Owner approval.
-- Suggested action: waiting-human
+- Generated: 2026-05-25T04:35:32.881Z
+- Risk: WARNING
+- Action: ask-gpt
+- Why approval required: not required
+- Suggested action: ask-gpt
 - Release impact: Release remains blocked until risk is cleared.
 
 ## Release Safety
 # Release Candidate Evaluation
-- Generated: 2026-05-25T00:36:33.390Z
-- Decision: DANGEROUS
-- Score: 50
+- Generated: 2026-05-25T04:40:23.635Z
+- Decision: WARNING
+- Score: 75
 - Production deploy: not automated
 - Rollback: not automated
 ## Reasons
-- Queue still has human approval waiting.
 - Self-heal memory contains unresolved recovery risk.
 - High-risk command attempts exist in execution audit.
+## Required Human Actions
 
 ## Central Executor Status
 # Central Executor
@@ -290,11 +283,11 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Execution History
 # Central Execution History
-- Generated: 2026-05-25T01:49:46.878Z
+- Generated: 2026-05-25T04:39:32.509Z
 ## Summary
-- Total recorded executions: 19
+- Total recorded executions: 30
 - Blocked executions: 1
-- High-risk attempts: 6
+- High-risk attempts: 12
 - Executor bypass suspicion: no
 ## Bypass Checks
 - No bypass signal in latest registry window.
@@ -302,13 +295,13 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Terminal Activity
 # Terminal Runtime
-- Generated: 2026-05-25T01:49:46.878Z
+- Generated: 2026-05-25T04:39:26.540Z
 ## Safe Terminal Mode
 - Status: enabled
 - Computer Use terminal commands must pass whitelist validation before central execution.
 - Production deploy, rollback, git push, env/API key edits, sudo, rm, and destructive commands are blocked.
 ## Summary
-- Recent terminal actions: 4
+- Recent terminal actions: 5
 - Recent blocked actions: 2
 - Current risk: HIGH
 
@@ -356,7 +349,7 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Human Approval Apply Result
 # Human Approval Apply Report
-- Generated: 2026-05-25T04:09:38.121Z
+- Generated: 2026-05-25T04:39:23.172Z
 - Action: noop
 - Valid: yes
 - Task: none
@@ -367,22 +360,23 @@ Generated: 2026-05-25T04:10:16.871Z
 - env/API access: not used
 
 ## Approval History Summary
-# Approval History
-- Updated: 2026-05-25T04:09:38.529Z
 - | Task | Risk | Action | Approved By | Reason |
 - | --- | --- | --- | --- | --- |
-- | mock-modify-scope-task | CRITICAL | block | - | High-risk task blocked until human approval is recorded. |
 - | mock-ask-gpt-task | LOW | allow | - | Approval not required. |
 - | mock-reject-task | LOW | cancel | - | Existing rejected queue token found. |
+- | mock-modify-scope-task | CRITICAL | cancel | - | Existing rejected queue token found. |
+- | human-confirmation-from-engineer-report | LOW | cancel | - | Existing rejected queue token found. |
+- | auto-improve-node-search-ux-safely-with-a-low-risk-pr | CRITICAL | cancel | - | Existing rejected queue token found. |
 - | mock-approve-task | CRITICAL | allow | - | Existing approved queue token found. |
 - | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | LOW | allow | - | Approval not required. |
+- | auto-add-a-compact-search-result-count-to-the-existin | LOW | allow | - | Approval not required. |
 
 ## Latest Engineer Report
 ## Engineer Report
 ### Task
 - 요청 요약: Document AI collaboration loop
 - Branch: dev
-- Generated: 2026-05-25T04:09:38.641Z
+- Generated: 2026-05-25T04:39:23.743Z
 ### Changes
 - Read agent-memory workflow files
 - Created the next mock task from local memory
@@ -392,7 +386,7 @@ Generated: 2026-05-25T04:10:16.871Z
 ## Latest GPT PM Report
 ## GPT PM Agent Report
 ### Current Status
-- Generated: 2026-05-25T04:09:38.641Z
+- Generated: 2026-05-25T04:39:23.743Z
 - Task ID: task-001
 - Task: Document AI collaboration loop
 - Status: queued
@@ -438,14 +432,14 @@ Generated: 2026-05-25T04:10:16.871Z
 - Cost risk: low while real OpenAI API integration remains disabled.
 
 ## Queue Health
-- Active: 6
+- Active: 9
 - Blocked: 1
-- Approval waiting: 3
+- Approval waiting: 0
 - Retry storms: possible
 
 ## Dangerous Command Attempts
 - Blocked command traces: 1
-- High/critical command traces: 6
+- High/critical command traces: 12
 
 ## Autonomous Maturity Level
 - Score: 6/6
@@ -453,10 +447,10 @@ Generated: 2026-05-25T04:10:16.871Z
 - Reason: Registry, message bus, approval gate, self-heal, runtime validation, and human-gated release evaluation are present.
 
 ## Current Risk Level
-- HIGH: human approval is waiting.
+- HIGH: runtime review reported dangerous risk.
 
 ## Current Highest Risk
-- Release candidate is DANGEROUS.
+- Blocked queue work is the highest current risk.
 
 ## Remaining Automation Gap
 - Real OpenAI API calls are intentionally not connected.
@@ -466,31 +460,29 @@ Generated: 2026-05-25T04:10:16.871Z
 
 ## Mobile Status
 # Mobile Status
-- Generated: 2026-05-25T04:09:44.815Z
-- 현재 상태: 사람 승인 대기
-- 지금 할 일: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
-- 승인 필요: yes
-- 위험도: DANGEROUS
+- Generated: 2026-05-25T04:42:19.085Z
+- 현재 상태: AI끼리 다음 안전 task 진행 가능
+- 지금 할 일: Send blocked task to GPT PM Agent: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
+- 승인 필요: no
+- 위험도: WARNING
 - 앱 정상 여부: SAFE
 - Browser validation: WARNING
 - Memory/render: SAFE
-- Approval action: waiting-human
+- Approval action: ask-gpt
 
 ## Safe / Unsafe Tasks
 - Safe task guidance: Ask GPT PM Agent for a LOW-risk documentation or test task.
-- Unsafe waiting approval: Task: mock-modify-scope-task
-- Unsafe waiting approval: Task: mock-modify-scope-task
-- Unsafe waiting approval: Task: Touches production/deployment surface.; Touches secret/env/security surface.
+- Unsafe waiting approval: none
 
 ## Inter-Agent Messages
-- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep mock-reject-task cancelled and request safer alternative.
-- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Archive mock-approve-task after report review.
-- GPT_PM_AGENT -> CODEX_ENGINEER_AGENT: TASK_ASSIGN / Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.
-- GPT_PM_AGENT -> HUMAN_VISION_OWNER: APPROVAL_REQUEST / Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep mock-modify-scope-task cancelled and request safer alternative.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep human-confirmation-from-engineer-report cancelled and request safer alternative.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.
 - GPT_PM_AGENT -> CODEX_ENGINEER_AGENT: BLOCKED_WARNING / Ask GPT PM to clarify mock-ask-gpt-task.
 - GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep mock-reject-task cancelled and request safer alternative.
-- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Archive mock-approve-task after report review.
-- GPT_PM_AGENT -> CODEX_ENGINEER_AGENT: TASK_ASSIGN / Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep mock-modify-scope-task cancelled and request safer alternative.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep human-confirmation-from-engineer-report cancelled and request safer alternative.
+- GPT_PM_AGENT -> HUMAN_VISION_OWNER: TASK_ASSIGN / Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.
 
 ## Task State Machine
 # Runtime Task State Machine
@@ -506,13 +498,11 @@ Generated: 2026-05-25T04:10:16.871Z
 - Ask GPT PM Agent for a LOW-risk documentation or test task.
 
 ## Unsafe Tasks Waiting Approval
-- Task: mock-modify-scope-task
-- Task: mock-modify-scope-task
-- Task: Touches production/deployment surface.; Touches secret/env/security surface.
+- None.
 
 ## Approved / Cancelled Queue Changes
 - Approved/pending: none
-- Cancelled: | ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |; | --- | --- | --- | --- | --- | --- | --- | --- |; | mock-reject-task | high | s1-critical | LOW | rejected | 0/2 | human | Human response task mock-reject-task |
+- Cancelled: | ID | Priority | Severity | Risk | Approval | Attempts | Owner | Title |; | --- | --- | --- | --- | --- | --- | --- | --- |; | mock-reject-task | high | s1-critical | LOW | rejected | 0/2 | human | Human response task mock-reject-task |; | mock-modify-scope-task | high | s1-critical | CRITICAL | rejected | 0/2 | human | Human response task mock-modify-scope-task |; | human-confirmation-from-engineer-report | high | s1-critical | LOW | rejected | 0/2 | human | Human response task human-confirmation-from-engineer-report |
 
 ## Mobile Review Files
 - dashboard/ai-organization-dashboard.md

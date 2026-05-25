@@ -4016,6 +4016,7 @@ export default function Home() {
         <input
           aria-label="Search nodes"
           className="index-search"
+          onFocus={() => setActiveLayer("index")}
           onChange={(event) => setIndexSearch(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
@@ -4023,15 +4024,28 @@ export default function Home() {
               setIndexSearch("");
               return;
             }
-            if (event.key === "Enter" && firstIndexMatch) {
+            if (event.key === "Enter") {
               event.preventDefault();
-              focusNode(firstIndexMatch);
+              const query = event.currentTarget.value.trim().toLowerCase();
+              const immediateMatch = query
+                ? simNodes.find((node) => node.label.toLowerCase().includes(query)) ??
+                  simNodes.find((node) => node.project.toLowerCase().includes(query)) ??
+                  firstIndexMatch
+                : firstIndexMatch;
+              if (immediateMatch) focusNode(immediateMatch);
             }
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            setActiveLayer("index");
           }}
           placeholder="Search"
           value={indexSearch}
         />
         {indexSearchPending && <p className="layer-kicker">검색 중...</p>}
+        {normalizedIndexSearch && !indexSearchPending && indexMatchCount > 0 && (
+          <p className="layer-kicker">검색 결과 {indexMatchCount}개</p>
+        )}
         {normalizedIndexSearch && !indexSearchPending && indexMatchCount === 0 && <p className="layer-kicker">검색 결과 없음</p>}
         {projects.length === 0 ? (
           <button className="index-item" type="button">빈 공간</button>

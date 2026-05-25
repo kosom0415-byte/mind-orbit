@@ -1,20 +1,9 @@
 # Human Approval Required
 
-Updated: 2026-05-25T04:09:38.590Z
+Updated: 2026-05-25T04:41:30.000Z
 
 ## Pending Approval
-- Task: mock-modify-scope-task
-  - Title: Human response task mock-modify-scope-task
-  - Reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Approval types: high_risk_task
-- Task: mock-modify-scope-task
-  - Title: Approval request
-  - Reason: <why this is safe or denied>
-  - Approval types: human_review
-- Task: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Title: Approval request
-  - Reason: <why>
-  - Approval types: human_review
+- None.
 
 ## Guardrails
 - Production deploy/rollback requires explicit human approval.

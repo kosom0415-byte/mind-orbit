@@ -73,6 +73,31 @@
 | 2026-05-25T04:09:44.466Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
 | 2026-05-25T04:09:44.466Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
 | 2026-05-25T04:09:44.466Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T04:15:13.162Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T04:15:13.162Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T04:15:13.162Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T04:15:13.162Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T04:15:13.162Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T04:23:52.704Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T04:23:52.704Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T04:23:52.704Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-modify-scope-task | s3-minor | no | Keep mock-modify-scope-task cancelled and request safer alternative. |
+| 2026-05-25T04:23:52.704Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | auto-improve-node-search-ux-safely-with-a-low-risk-pr | s1-critical | no | Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative. |
+| 2026-05-25T04:23:52.704Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T04:24:00.141Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T04:24:00.141Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T04:24:00.141Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-modify-scope-task | s3-minor | no | Keep mock-modify-scope-task cancelled and request safer alternative. |
+| 2026-05-25T04:24:00.141Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | auto-improve-node-search-ux-safely-with-a-low-risk-pr | s1-critical | no | Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative. |
+| 2026-05-25T04:24:00.141Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T04:39:23.229Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T04:39:23.229Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.229Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-modify-scope-task | s3-minor | no | Keep mock-modify-scope-task cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.229Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | human-confirmation-from-engineer-report | s3-minor | no | Keep human-confirmation-from-engineer-report cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.229Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | auto-improve-node-search-ux-safely-with-a-low-risk-pr | s1-critical | no | Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.639Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T04:39:23.639Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.639Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-modify-scope-task | s3-minor | no | Keep mock-modify-scope-task cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.639Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | human-confirmation-from-engineer-report | s3-minor | no | Keep human-confirmation-from-engineer-report cancelled and request safer alternative. |
+| 2026-05-25T04:39:23.639Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | auto-improve-node-search-ux-safely-with-a-low-risk-pr | s1-critical | no | Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative. |
 
 <!-- message-bus-state
 [
@@ -1083,6 +1108,356 @@
     },
     "requiresApproval": false,
     "timestamp": "2026-05-25T04:09:44.466Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T04:15:13.162Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:15:13.162Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:15:13.162Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:15:13.162Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:15:13.162Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:23:52.704Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:23:52.704Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-modify-scope-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:23:52.704Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "auto-improve-node-search-ux-safely-with-a-low-risk-pr",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:23:52.704Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:23:52.704Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:24:00.141Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:24:00.141Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-modify-scope-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:24:00.141Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "auto-improve-node-search-ux-safely-with-a-low-risk-pr",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:24:00.141Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:24:00.141Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.229Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.229Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-modify-scope-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.229Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "human-confirmation-from-engineer-report",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep human-confirmation-from-engineer-report cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.229Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "auto-improve-node-search-ux-safely-with-a-low-risk-pr",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.229Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.639Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.639Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-modify-scope-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.639Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "human-confirmation-from-engineer-report",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep human-confirmation-from-engineer-report cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.639Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "auto-improve-node-search-ux-safely-with-a-low-risk-pr",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep auto-improve-node-search-ux-safely-with-a-low-risk-pr cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T04:39:23.639Z"
   }
 ]
 -->

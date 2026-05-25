@@ -1,9 +1,9 @@
 # Recovery Strategy Engine
 
-Generated: 2026-05-25T04:09:44.474Z
+Generated: 2026-05-25T04:39:23.648Z
 
 - Confidence: 0.92
-- Rollback candidate: fc58517 Add safe terminal mode for computer use
+- Rollback candidate: b36afc3 Complete real autonomous product execution workflow
 - Strategy: Continue monitoring and prefer narrow dev-only workflow tasks.
 - Auto retry: allowed for LOW/MEDIUM workflow tasks only
 - Human approval required: no

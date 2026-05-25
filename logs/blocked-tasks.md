@@ -1,7 +1,5 @@
 # Blocked Tasks
 
-Updated: 2026-05-25T04:09:38.529Z
+Updated: 2026-05-25T04:39:23.618Z
 
-- mock-modify-scope-task: Human response task mock-modify-scope-task (CRITICAL)
-  - Blocked reason: Approval gate blocked CRITICAL risk task: Touches production/deployment surface.; Touches secret/env/security surface.
-  - Recommended safe alternative: narrow scope, split into docs/test-only task, or ask GPT PM for a safer handoff.
+- None.

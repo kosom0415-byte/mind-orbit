@@ -17,7 +17,7 @@ export function generateMobileStatus(projectRoot: string): string {
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const readiness = readOptional(projectRoot, "logs/live-readiness.md");
   const commit = latestCommit(projectRoot);
-  const approvalNeeded = /Human intervention needed:\s+yes|Approval waiting:\s+[1-9]/i.test(state);
+  const approvalNeeded = /Approval waiting:\s+[1-9]/i.test(state) || hasActionableHumanQuestion(humanQuestions);
   const markdown = [
     "# Mobile Status",
     "",
@@ -54,6 +54,12 @@ export function generateMobileStatus(projectRoot: string): string {
   ].join("\n");
   writeText(projectRoot, MOBILE_STATUS_PATH, markdown);
   return markdown;
+}
+
+function hasActionableHumanQuestion(markdown: string): boolean {
+  if (!markdown.trim()) return false;
+  if (/-\s*none\s*$/im.test(markdown)) return false;
+  return /Approval ID:|Task:|Required:\s*yes|Can Codex proceed/i.test(markdown);
 }
 
 function latestCommit(projectRoot: string): string {

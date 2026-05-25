@@ -40,3 +40,13 @@
 - Risk score: 5
 - Category: git status
 - Reason: Command is allowed by Safe Terminal Mode whitelist.
+
+## 2026-05-25T04:39:26.539Z
+- Actor: central-shell-executor
+- Task: auto-validation-pipeline
+- Command: npm run build
+- Allowed: yes
+- Risk: MEDIUM
+- Risk score: 25
+- Category: build
+- Reason: Command is allowed by Safe Terminal Mode whitelist.

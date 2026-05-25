@@ -1,7 +1,7 @@
 # Browser Validation Report
 
-Generated: 2026-05-25T04:10:16.875Z
-- Target URL: http://127.0.0.1:3001
+Generated: 2026-05-25T04:35:32.872Z
+- Target URL: http://127.0.0.1:3004
 - Risk: WARNING
 - Summary: Browser validation passed with visual drift warning.
 - Load failure: no

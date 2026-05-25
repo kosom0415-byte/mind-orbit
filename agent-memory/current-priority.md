@@ -1,5 +1,5 @@
 # Current Priority
 
-Generated: 2026-05-25T04:09:44.409Z
+Generated: 2026-05-25T04:42:18.961Z
 
-- Priority: wait for Human Vision Owner approval or scope decision.
+- Priority: ask GPT PM for the next LOW-risk task.

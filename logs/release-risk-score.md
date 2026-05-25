@@ -1,14 +1,13 @@
 # Release Risk Score
 
-Generated: 2026-05-25T04:09:44.471Z
+Generated: 2026-05-25T04:39:23.646Z
 
-- Score: 95
-- Level: CRITICAL
+- Score: 65
+- Level: HIGH
 - Release ready: no
 
 ## Reasons
 - Release manager marked candidate DANGEROUS.
-- 1 human approval task(s) waiting.
 - 1 blocked task(s) in queue.
 
 ## Safety

@@ -1,14 +1,13 @@
 # Release Candidate Evaluation
 
-Generated: 2026-05-25T00:36:33.390Z
+Generated: 2026-05-25T04:40:23.635Z
 
-- Decision: DANGEROUS
-- Score: 50
+- Decision: WARNING
+- Score: 75
 - Production deploy: not automated
 - Rollback: not automated
 
 ## Reasons
-- Queue still has human approval waiting.
 - Self-heal memory contains unresolved recovery risk.
 - High-risk command attempts exist in execution audit.
 

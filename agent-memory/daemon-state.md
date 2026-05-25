@@ -1,11 +1,11 @@
 # Daemon Status
 
-Generated: 2026-05-25T04:09:44.251Z
+Generated: 2026-05-25T04:39:23.412Z
 
 - Last cycle: 1
-- Last action: dashboard-only
-- Summary: Waiting-human detected; daemon refreshed dashboards only.
-- Waiting human: yes
+- Last action: idle
+- Summary: No safe task or approval response; refreshed dashboards.
+- Waiting human: no
 - Safe task available: no
 - Approval response pending: no
 - Runtime status: SAFE
@@ -15,4 +15,4 @@ Generated: 2026-05-25T04:09:44.251Z
 - Live Codex: no
 
 ## Mobile Guidance
-- Human Vision Owner should write approve/reject/modify-scope/ask-gpt in `agent-memory/human-response.md`.
+- Run daemon again or keep it alive with `npm run agent:daemon -- --interval=60 --max-cycles=10`.
