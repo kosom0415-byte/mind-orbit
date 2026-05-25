@@ -45,6 +45,7 @@
     "agent:api-safety": "node --import tsx ai-workflow/api-safety-check.ts",
     "agent:live-openai": "node --import tsx ai-workflow/live-openai-readiness.ts",
     "agent:live-codex": "node --import tsx ai-workflow/live-codex-readiness.ts",
+    "agent:safe-terminal": "node --import tsx ai-workflow/safe-terminal-commands.ts",
     "agent:report": "node --import tsx ai-workflow/report-generator.ts",
     "agent:self-heal": "node --import tsx ai-workflow/self-heal-engine.ts",
     "agent:watch": "node --import tsx ai-workflow/agent-watch.ts",

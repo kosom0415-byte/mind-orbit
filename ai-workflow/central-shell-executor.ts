@@ -6,6 +6,7 @@ import { enforceApprovalGate, type ApprovalGateTask, type RiskLevel } from "./ap
 import { inspectCommand } from "./command-firewall";
 import { writeExecutionAudit } from "./execution-audit";
 import { appendExecutionTrace, createExecutionTrace, type ExecutionKind, type ExecutionTrace } from "./execution-registry";
+import { validateTerminalCommand } from "./safe-terminal-commands";
 
 export interface CentralShellResult {
   trace: ExecutionTrace;
@@ -13,16 +14,6 @@ export interface CentralShellResult {
   exitCode: number;
   output: string;
 }
-
-const ALLOWED_COMMANDS = new Set([
-  "npm run build",
-  "npm run agent:queue",
-  "npm run agent:bridge",
-  "npm run agent:dashboard",
-  "npm run agent:approve",
-  "npm run agent:report",
-  "npm run agent:self-heal",
-]);
 
 export function runCentralShellCommand(
   projectRoot: string,
@@ -34,9 +25,12 @@ export function runCentralShellCommand(
   const kind = options.kind ?? classifyKind(command);
   const gate = enforceApprovalGate(projectRoot, task);
   const firewall = inspectCommand(projectRoot, task, command);
-  const allowListed = ALLOWED_COMMANDS.has(command);
-  const riskLevel = highestRisk(gate.assessment.riskLevel, firewall.riskLevel as RiskLevel, allowListed ? "LOW" : "HIGH");
-  const baseReason = allowListed ? "Command is in central executor allow-list." : "Command is not in central executor allow-list.";
+  const terminal = validateTerminalCommand(projectRoot, command, {
+    actor: "central-shell-executor",
+    taskId: task.id,
+  });
+  const riskLevel = highestRisk(gate.assessment.riskLevel, firewall.riskLevel as RiskLevel, terminal.riskLevel as RiskLevel);
+  const baseReason = terminal.allowed ? "Command is in Safe Terminal Mode allow-list." : terminal.reason;
   const trace = createExecutionTrace({
     taskId: task.id,
     kind,
@@ -47,7 +41,7 @@ export function runCentralShellCommand(
     rollbackCandidate: "manual approval required before rollback",
   });
 
-  if (gate.action !== "allow" || !firewall.allowed || !allowListed) {
+  if (gate.action !== "allow" || !firewall.allowed || !terminal.allowed) {
     const blockedTrace = {
       ...trace,
       status: "blocked" as const,

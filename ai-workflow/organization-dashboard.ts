@@ -36,6 +36,9 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const autoValidation = readOptional(projectRoot, "logs/auto-validation-pipeline.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const executionHistory = readOptional(projectRoot, "logs/execution-history.md");
+  const terminalActions = readOptional(projectRoot, "logs/terminal-actions.md");
+  const blockedTerminalActions = readOptional(projectRoot, "logs/blocked-terminal-actions.md");
+  const terminalRuntime = readOptional(projectRoot, "dashboard/terminal-runtime.md");
   const directBridge = readOptional(projectRoot, "logs/direct-bridge.md");
   const taskBus = readOptional(projectRoot, "logs/task-bus.md");
   const realBridge = readOptional(projectRoot, "logs/real-bridge-runtime.md");
@@ -155,6 +158,15 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Execution History",
     excerpt(executionHistory, "No central execution history found."),
+    "",
+    "## Terminal Activity",
+    excerpt(terminalRuntime, "No terminal runtime dashboard found."),
+    "",
+    "## Terminal Action Log",
+    excerpt(terminalActions, "No terminal actions recorded."),
+    "",
+    "## Blocked Terminal Actions",
+    excerpt(blockedTerminalActions, "No blocked terminal actions recorded."),
     "",
     "## Human Confirmation Log",
     excerpt(confirmationLog, "No human confirmation log found."),

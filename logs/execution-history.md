@@ -1,11 +1,11 @@
 # Central Execution History
 
-Generated: 2026-05-25T00:34:20.569Z
+Generated: 2026-05-25T01:49:46.878Z
 
 ## Summary
-- Total recorded executions: 16
-- Blocked executions: 0
-- High-risk attempts: 5
+- Total recorded executions: 19
+- Blocked executions: 1
+- High-risk attempts: 6
 - Executor bypass suspicion: no
 
 ## Bypass Checks
@@ -30,6 +30,9 @@ Generated: 2026-05-25T00:34:20.569Z
 | 2026-05-25T00:31:54.068Z | exec-2026-05-25T00-31-54-068Z-1b5645a2 | browser-runtime | failed | CRITICAL | 1b5645a23bd1 | Blank screen or failed load signal detected. |
 | 2026-05-25T00:32:16.707Z | exec-2026-05-25T00-32-16-707Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
 | 2026-05-25T00:34:20.518Z | exec-2026-05-25T00-34-20-518Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
+| 2026-05-25T01:49:46.864Z | exec-2026-05-25T01-49-46-864Z-c32f2b1a | git | blocked | HIGH | c32f2b1a66f8 | git push is forbidden in Safe Terminal Mode. Approval not required. Command passed firewall and approval gate. |
+| 2026-05-25T01:49:46.878Z | exec-2026-05-25T01-49-46-878Z-e62b04aa | git | running | LOW | e62b04aadf39 | Central executor accepted command. |
+| 2026-05-25T01:49:46.878Z | exec-2026-05-25T01-49-46-878Z-e62b04aa | git | completed | LOW | e62b04aadf39 | Dry-run mode recorded without shell execution. |
 
 ## Rollback Candidates
 - none

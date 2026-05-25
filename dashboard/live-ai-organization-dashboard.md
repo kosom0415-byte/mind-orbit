@@ -1,6 +1,6 @@
 # AI Organization Dashboard
 
-Generated: 2026-05-25T00:36:50.792Z
+Generated: 2026-05-25T01:50:36.171Z
 
 ## Current Workflow Status
 - GPT PM Agent: active via markdown reports
@@ -248,15 +248,51 @@ Generated: 2026-05-25T00:36:50.792Z
 
 ## Execution History
 # Central Execution History
-- Generated: 2026-05-25T00:34:20.569Z
+- Generated: 2026-05-25T01:49:46.878Z
 ## Summary
-- Total recorded executions: 16
-- Blocked executions: 0
-- High-risk attempts: 5
+- Total recorded executions: 19
+- Blocked executions: 1
+- High-risk attempts: 6
 - Executor bypass suspicion: no
 ## Bypass Checks
 - No bypass signal in latest registry window.
 ## Latest Traces
+
+## Terminal Activity
+# Terminal Runtime
+- Generated: 2026-05-25T01:49:46.878Z
+## Safe Terminal Mode
+- Status: enabled
+- Computer Use terminal commands must pass whitelist validation before central execution.
+- Production deploy, rollback, git push, env/API key edits, sudo, rm, and destructive commands are blocked.
+## Summary
+- Recent terminal actions: 4
+- Recent blocked actions: 2
+- Current risk: HIGH
+
+## Terminal Action Log
+# Terminal Actions
+## 2026-05-25T01:49:46.858Z
+- Actor: safe-terminal-self-test
+- Task: safe-command-test
+- Command: git status
+- Allowed: yes
+- Risk: LOW
+- Risk score: 5
+- Category: git status
+- Reason: Command is allowed by Safe Terminal Mode whitelist.
+
+## Blocked Terminal Actions
+# Blocked Terminal Actions
+## 2026-05-25T01:49:46.860Z
+- Actor: safe-terminal-self-test
+- Task: blocked-command-test
+- Command: git push
+- Allowed: no
+- Risk: HIGH
+- Risk score: 90
+- Category: blocked
+- Reason: git push is forbidden in Safe Terminal Mode.
 
 ## Human Confirmation Log
 # Human Confirmation Log
@@ -366,8 +402,8 @@ Generated: 2026-05-25T00:36:50.792Z
 - Retry storms: possible
 
 ## Dangerous Command Attempts
-- Blocked command traces: 0
-- High/critical command traces: 5
+- Blocked command traces: 1
+- High/critical command traces: 6
 
 ## Autonomous Maturity Level
 - Score: 6/6

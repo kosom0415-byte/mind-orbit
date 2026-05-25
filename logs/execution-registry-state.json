@@ -214,5 +214,47 @@
     "retryCount": 0,
     "rollbackCandidate": "manual approval required before rollback",
     "startedAt": "2026-05-25T00:34:20.518Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T01-49-46-864Z-c32f2b1a",
+    "taskId": "central-shell-validation",
+    "kind": "git",
+    "command": "git push",
+    "commandHash": "c32f2b1a66f8a79deadb74f533f3075c60a629df343b89e8c4477d40fa960ba8",
+    "status": "blocked",
+    "riskLevel": "HIGH",
+    "reason": "git push is forbidden in Safe Terminal Mode. Approval not required. Command passed firewall and approval gate.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T01:49:46.864Z",
+    "finishedAt": "2026-05-25T01:49:46.864Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T01-49-46-878Z-e62b04aa",
+    "taskId": "central-shell-validation",
+    "kind": "git",
+    "command": "git status",
+    "commandHash": "e62b04aadf39df1a47b771265e4ae5c452df3f1903d5c263ab00f088e86102f6",
+    "status": "running",
+    "riskLevel": "LOW",
+    "reason": "Central executor accepted command.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T01:49:46.878Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T01-49-46-878Z-e62b04aa",
+    "taskId": "central-shell-validation",
+    "kind": "git",
+    "command": "git status",
+    "commandHash": "e62b04aadf39df1a47b771265e4ae5c452df3f1903d5c263ab00f088e86102f6",
+    "status": "completed",
+    "riskLevel": "LOW",
+    "reason": "Dry-run mode recorded without shell execution.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T01:49:46.878Z",
+    "finishedAt": "2026-05-25T01:49:46.878Z",
+    "outputSummary": "dry-run completed"
   }
 ]
