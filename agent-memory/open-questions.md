@@ -1,6 +1,6 @@
 # Open Questions
 
-Updated: 2026-05-24T22:38:52.959Z
+Updated: 2026-05-25T00:34:23.188Z
 
 ## Pending
 - [task-queue/mock-ask-gpt-task] Human asked GPT PM: Ask GPT PM for a safer scope if needed.

@@ -1,6 +1,6 @@
 # Mobile Status
 
-Generated: 2026-05-24T22:38:53.474Z
+Generated: 2026-05-25T00:36:50.668Z
 
 - 현재 상태: 사람 승인 대기
 - 지금 할 일: Ask human approval for mock-modify-scope-task: Human response task mock-modify-scope-task
@@ -8,14 +8,14 @@ Generated: 2026-05-24T22:38:53.474Z
 - 위험도: DANGEROUS
 - 앱 정상 여부: SAFE
 - Release readiness: DANGEROUS
-- 마지막 커밋: 1e63ee6 Harden real bridge continuation readiness
+- 마지막 커밋: ca4a355 Add persistent autonomous runtime daemon
 - Live GPT ready: no
 - Live Codex ready: no
 
 ## 다음 Codex 지시문
 # Next Executable Task
 
-Generated: 2026-05-24T22:38:52.570Z
+Generated: 2026-05-25T00:34:02.010Z
 
 - Status: none
 - Reason: no safe pending task found; use GPT/Human question files first.
@@ -24,7 +24,7 @@ Generated: 2026-05-24T22:38:52.570Z
 ## 다음 GPT 질문
 # Questions For GPT PM
 
-Generated: 2026-05-24T22:38:52.570Z
+Generated: 2026-05-25T00:34:02.010Z
 
 - mock-ask-gpt-task: Human response task mock-ask-gpt-task (LOW) needs GPT PM scope decision. Reason: Human asked GPT PM: Ask GPT PM for a safer scope if needed.
 - Evaluated severity, priority, blocked state, and approval state
@@ -36,7 +36,7 @@ Generated: 2026-05-24T22:38:52.570Z
 ## Human 질문
 # Questions For Human Vision Owner
 
-Generated: 2026-05-24T22:38:52.625Z
+Generated: 2026-05-25T00:34:02.062Z
 
 - Real bridge found a HIGH/CRITICAL or approval-gated handoff.
 - Should this be approved, rejected, modified in scope, or sent back to GPT PM?

@@ -167,7 +167,10 @@ function isDirectRun(): boolean {
 }
 
 if (isDirectRun()) {
-  runBrowserRuntimeAgent(process.cwd(), { mode: process.argv.includes("--mock-crash") ? "mock-crash" : "http-probe" }).then((report) => {
+  runBrowserRuntimeAgent(process.cwd(), {
+    mode: process.argv.includes("--mock-crash") ? "mock-crash" : "http-probe",
+    targetUrl: process.env.AGENT_RUNTIME_URL,
+  }).then((report) => {
     console.log(`Runtime vision: ${report.detection.risk}`);
     console.log(`Wrote: ${RUNTIME_VISION_PATH}`);
   });

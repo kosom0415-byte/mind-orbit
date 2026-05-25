@@ -17,6 +17,7 @@ export interface QueueTaskLike {
   maxAttempts?: number;
   humanApprovalRequired?: boolean;
   approvalStatus?: string;
+  approvalId?: string;
   approvalTypes?: string[];
   riskLevel?: string;
   riskReasons?: string[];

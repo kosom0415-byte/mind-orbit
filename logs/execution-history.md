@@ -1,11 +1,11 @@
 # Central Execution History
 
-Generated: 2026-05-24T05:45:20.084Z
+Generated: 2026-05-25T00:34:20.569Z
 
 ## Summary
-- Total recorded executions: 13
+- Total recorded executions: 16
 - Blocked executions: 0
-- High-risk attempts: 4
+- High-risk attempts: 5
 - Executor bypass suspicion: no
 
 ## Bypass Checks
@@ -27,6 +27,9 @@ Generated: 2026-05-24T05:45:20.084Z
 | 2026-05-24T05:45:14.473Z | exec-2026-05-24T05-45-14-473Z-16c0e430 | shell | running | LOW | 16c0e4305ac2 | Central executor accepted command. |
 | 2026-05-24T05:45:20.042Z | exec-2026-05-24T05-45-14-473Z-16c0e430 | shell | completed | LOW | 16c0e4305ac2 | Command completed through central executor. |
 | 2026-05-24T05:45:20.042Z | exec-2026-05-24T05-45-20-042Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
+| 2026-05-25T00:31:54.068Z | exec-2026-05-25T00-31-54-068Z-1b5645a2 | browser-runtime | failed | CRITICAL | 1b5645a23bd1 | Blank screen or failed load signal detected. |
+| 2026-05-25T00:32:16.707Z | exec-2026-05-25T00-32-16-707Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
+| 2026-05-25T00:34:20.518Z | exec-2026-05-25T00-34-20-518Z-b57a67d8 | browser-runtime | completed | LOW | b57a67d86ddb | No runtime risk signal detected. |
 
 ## Rollback Candidates
 - none

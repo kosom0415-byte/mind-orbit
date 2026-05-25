@@ -105,6 +105,7 @@ function runContinue(projectRoot: string, options: DaemonOptions): void {
 
 function runDashboardOnly(projectRoot: string): void {
   for (const script of [
+    "ai-workflow/autonomous-cycle-manager.ts",
     "ai-workflow/live-readiness-check.ts",
     "ai-workflow/organization-dashboard.ts",
     "ai-workflow/human-supervision-center.ts",

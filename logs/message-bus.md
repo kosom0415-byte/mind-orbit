@@ -28,6 +28,41 @@
 | 2026-05-24T22:38:52.517Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
 | 2026-05-24T22:38:52.517Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
 | 2026-05-24T22:38:52.517Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:30:57.730Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:30:57.730Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:30:57.730Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:30:57.730Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:30:57.730Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:33:14.148Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:33:14.148Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:33:14.148Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:33:14.148Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:33:14.148Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:33:47.159Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:33:47.159Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:33:47.159Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:33:47.159Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:33:47.159Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:34:01.959Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:34:01.959Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:34:01.959Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:34:01.959Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:34:01.959Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:34:02.592Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:34:02.592Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:34:02.592Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:34:02.592Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:34:02.592Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:35:56.907Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:35:56.907Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:35:56.907Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:35:56.907Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:35:56.907Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
+| 2026-05-25T00:36:50.504Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | APPROVAL_REQUEST | mock-modify-scope-task | s1-critical | yes | Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task. |
+| 2026-05-25T00:36:50.504Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | BLOCKED_WARNING | mock-ask-gpt-task | s3-minor | no | Ask GPT PM to clarify mock-ask-gpt-task. |
+| 2026-05-25T00:36:50.504Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-reject-task | s3-minor | no | Keep mock-reject-task cancelled and request safer alternative. |
+| 2026-05-25T00:36:50.504Z | GPT_PM_AGENT | HUMAN_VISION_OWNER | TASK_ASSIGN | mock-approve-task | s1-critical | no | Archive mock-approve-task after report review. |
+| 2026-05-25T00:36:50.504Z | GPT_PM_AGENT | CODEX_ENGINEER_AGENT | TASK_ASSIGN | auto-use-ai-workflow-orchestrator-ts-as-the-local-mod | s3-minor | no | Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review. |
 
 <!-- message-bus-state
 [
@@ -408,6 +443,496 @@
     },
     "requiresApproval": false,
     "timestamp": "2026-05-24T22:38:52.517Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:30:57.730Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:30:57.730Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:30:57.730Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:30:57.730Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:30:57.730Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:33:14.148Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:14.148Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:14.148Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:14.148Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:14.148Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:33:47.159Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:47.159Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:47.159Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:47.159Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:33:47.159Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:34:01.959Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:01.959Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:01.959Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:01.959Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:01.959Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:34:02.592Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:02.592Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:02.592Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:02.592Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:34:02.592Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:35:56.907Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:35:56.907Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:35:56.907Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:35:56.907Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:35:56.907Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-modify-scope-task",
+    "severity": "s1-critical",
+    "type": "APPROVAL_REQUEST",
+    "summary": "Ask Human Vision Owner to approve/reject/modify mock-modify-scope-task.",
+    "payload": {
+      "busStatus": "waiting-human",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": true,
+    "timestamp": "2026-05-25T00:36:50.504Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "mock-ask-gpt-task",
+    "severity": "s3-minor",
+    "type": "BLOCKED_WARNING",
+    "summary": "Ask GPT PM to clarify mock-ask-gpt-task.",
+    "payload": {
+      "busStatus": "waiting-gpt",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:36:50.504Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-reject-task",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Keep mock-reject-task cancelled and request safer alternative.",
+    "payload": {
+      "busStatus": "rejected",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:36:50.504Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "HUMAN_VISION_OWNER",
+    "taskId": "mock-approve-task",
+    "severity": "s1-critical",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive mock-approve-task after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "CRITICAL"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:36:50.504Z"
+  },
+  {
+    "from": "GPT_PM_AGENT",
+    "to": "CODEX_ENGINEER_AGENT",
+    "taskId": "auto-use-ai-workflow-orchestrator-ts-as-the-local-mod",
+    "severity": "s3-minor",
+    "type": "TASK_ASSIGN",
+    "summary": "Archive auto-use-ai-workflow-orchestrator-ts-as-the-local-mod after report review.",
+    "payload": {
+      "busStatus": "completed",
+      "risk": "LOW"
+    },
+    "requiresApproval": false,
+    "timestamp": "2026-05-25T00:36:50.504Z"
   }
 ]
 -->
