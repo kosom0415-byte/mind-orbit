@@ -1,8 +1,8 @@
 # Runtime DOM Observation
 
-Generated: 2026-05-25T00:36:50.508Z
+Generated: 2026-05-25T04:10:16.874Z
 - Risk: SAFE
-- Node count: 131
+- Node count: 12
 - Root signal: yes
 - Body/main signal: yes
 - Runtime error text: no

@@ -1,6 +1,6 @@
 # Learned Failure Patterns
 
-Generated: 2026-05-25T00:36:50.512Z
+Generated: 2026-05-25T04:09:44.474Z
 
 - temporal-dead-zone: confidence 0.92, action: Move initialization before use and avoid circular hook references.
 - hydration-mismatch: confidence 0.84, action: Move browser-only reads behind client effects.

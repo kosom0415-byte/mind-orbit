@@ -8,6 +8,9 @@ export function generateHumanSupervisionCenter(projectRoot: string): string {
   const queue = parseQueueState(readOptional(projectRoot, "logs/task-queue.md"));
   const humanQuestions = readOptional(projectRoot, "agent-memory/questions-for-human.md");
   const runtime = readOptional(projectRoot, "logs/runtime-vision.md");
+  const browserValidation = readOptional(projectRoot, "logs/browser-validation-report.md");
+  const runtimeMemory = readOptional(projectRoot, "logs/runtime-memory-report.md");
+  const approvalRuntime = readOptional(projectRoot, "dashboard/live-approval-status.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const responseTemplate = readOptional(projectRoot, "agent-memory/human-response-template.md");
   const waiting = queue.tasks.filter((task) => task.queueStatus === "human_approval_required" || task.humanApprovalRequired);
@@ -44,6 +47,13 @@ export function generateHumanSupervisionCenter(projectRoot: string): string {
     "",
     "## 최근 Runtime 상태",
     runtime.trim() ? runtime.split("\n").slice(0, 18).join("\n") : "- runtime report missing",
+    "",
+    "## Browser / Memory Validation",
+    browserValidation.trim() ? browserValidation.split("\n").slice(0, 12).join("\n") : "- browser validation missing",
+    runtimeMemory.trim() ? runtimeMemory.split("\n").slice(0, 8).join("\n") : "- runtime memory report missing",
+    "",
+    "## Approval Runtime Gate",
+    approvalRuntime.trim() ? approvalRuntime.split("\n").slice(0, 10).join("\n") : "- live approval status missing",
     "",
     "## Release 상태",
     release.trim() ? release.split("\n").slice(0, 14).join("\n") : "- release report missing",

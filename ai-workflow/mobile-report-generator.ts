@@ -11,6 +11,9 @@ export function generateMobileStatus(projectRoot: string): string {
   const gptQuestions = readOptional(projectRoot, "agent-memory/questions-for-gpt.md");
   const humanQuestions = readOptional(projectRoot, "agent-memory/questions-for-human.md");
   const runtime = readOptional(projectRoot, "logs/runtime-vision.md");
+  const browserValidation = readOptional(projectRoot, "logs/browser-validation-report.md");
+  const runtimeMemory = readOptional(projectRoot, "logs/runtime-memory-report.md");
+  const approvalRuntime = readOptional(projectRoot, "dashboard/live-approval-status.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const readiness = readOptional(projectRoot, "logs/live-readiness.md");
   const commit = latestCommit(projectRoot);
@@ -25,6 +28,9 @@ export function generateMobileStatus(projectRoot: string): string {
     `- 승인 필요: ${approvalNeeded ? "yes" : "no"}`,
     `- 위험도: ${firstMatch(state, /Current risk:\s*(.+)/i, "unknown")}`,
     `- 앱 정상 여부: ${firstMatch(runtime, /Risk:\s*(.+)/i, "unknown")}`,
+    `- Browser validation: ${firstMatch(browserValidation, /Risk:\s*(.+)/i, "unknown")}`,
+    `- Memory/render: ${firstMatch(runtimeMemory, /Risk:\s*(.+)/i, "unknown")}`,
+    `- Approval action: ${firstMatch(approvalRuntime, /Action:\s*(.+)/i, "unknown")}`,
     `- Release readiness: ${firstMatch(release, /Decision:\s*(.+)/i, "unknown")}`,
     `- 마지막 커밋: ${commit}`,
     `- Live GPT ready: ${firstMatch(readiness, /Live GPT ready:\s*(.+)/i, "unknown")}`,
@@ -38,6 +44,9 @@ export function generateMobileStatus(projectRoot: string): string {
     "",
     "## Human 질문",
     humanQuestions.trim() ? humanQuestions.split("\n").slice(0, 12).join("\n") : "- none",
+    "",
+    "## Runtime Validation",
+    browserValidation.trim() ? browserValidation.split("\n").slice(0, 10).join("\n") : "- none",
     "",
     "## 다음 추천 액션",
     approvalNeeded ? "- `agent-memory/human-response.md`에 approve/reject/modify-scope/ask-gpt 중 하나를 남긴 뒤 `npm run agent:continue` 실행" : "- `npm run agent:continue`로 루프 갱신",

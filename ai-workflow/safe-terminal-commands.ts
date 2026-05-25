@@ -27,6 +27,11 @@ const SAFE_EXACT_COMMANDS = new Map<string, string>([
   ["npm run agent:mobile", "mobile report"],
   ["npm run agent:continue", "continue"],
   ["npm run agent:daemon -- --once", "daemon once"],
+  ["npm run agent:validate", "validation"],
+  ["npm run agent:browser-validation", "validation"],
+  ["npm run agent:runtime-memory", "validation"],
+  ["npm run agent:product-cycle", "validation"],
+  ["ls logs", "logs"],
   ["git status", "git status"],
 ]);
 

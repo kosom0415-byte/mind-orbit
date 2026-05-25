@@ -1,6 +1,6 @@
 # Questions For Human Vision Owner
 
-Generated: 2026-05-25T00:34:02.062Z
+Generated: 2026-05-25T04:09:38.280Z
 
 - Real bridge found a HIGH/CRITICAL or approval-gated handoff.
 - Should this be approved, rejected, modified in scope, or sent back to GPT PM?

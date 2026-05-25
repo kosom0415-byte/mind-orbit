@@ -34,6 +34,10 @@ export function generateOrganizationDashboard(projectRoot: string): string {
   const runtime = readOptional(projectRoot, "logs/agent-runtime-execution.md");
   const runtimeVision = readOptional(projectRoot, "logs/runtime-vision.md");
   const autoValidation = readOptional(projectRoot, "logs/auto-validation-pipeline.md");
+  const browserValidation = readOptional(projectRoot, "logs/browser-validation-report.md");
+  const runtimeMemory = readOptional(projectRoot, "logs/runtime-memory-report.md");
+  const approvalRuntime = readOptional(projectRoot, "dashboard/live-approval-status.md");
+  const productCycle = readOptional(projectRoot, "logs/product-cycle-report.md");
   const release = readOptional(projectRoot, "logs/release-candidates.md");
   const executionHistory = readOptional(projectRoot, "logs/execution-history.md");
   const terminalActions = readOptional(projectRoot, "logs/terminal-actions.md");
@@ -149,6 +153,18 @@ export function generateOrganizationDashboard(projectRoot: string): string {
     "",
     "## Auto Validation Pipeline",
     excerpt(autoValidation, "No auto validation pipeline report found."),
+    "",
+    "## Product Execution Cycle",
+    excerpt(productCycle, "No product execution cycle report found."),
+    "",
+    "## Browser Validation Loop",
+    excerpt(browserValidation, "No browser validation loop report found."),
+    "",
+    "## Runtime Memory / Render Observation",
+    excerpt(runtimeMemory, "No runtime memory report found."),
+    "",
+    "## Live Approval Runtime Gate",
+    excerpt(approvalRuntime, "No live approval runtime gate found."),
     "",
     "## Release Safety",
     excerpt(release, "No release candidate evaluation found."),

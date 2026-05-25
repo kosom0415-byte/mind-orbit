@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@supabase/supabase-js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useGestures } from "../hooks/useGestures";
 import { useViewport } from "../hooks/useViewport";
 import { useInteractionState } from "../hooks/useInteractionState";
@@ -1729,6 +1729,7 @@ export default function Home() {
   const [indexPosition, setIndexPosition] = useState<DetailPosition>({ x: 28, y: 34 });
   const [activeLayer, setActiveLayer] = useState<LayerName | "controls" | "guide" | "history">("input");
   const [indexSearch, setIndexSearch] = useState("");
+  const deferredIndexSearch = useDeferredValue(indexSearch);
   const [collapsedIndexNodes, setCollapsedIndexNodes] = useState<Record<string, boolean>>({});
   const [storageUsage, setStorageUsage] = useState<StorageUsage>({
     bytes: 0,
@@ -1762,6 +1763,20 @@ export default function Home() {
     [edges, generatedEdges, repairedEdges],
   );
   const modeLabel = currentPocketId ? "Inner Space" : editingNodeId ? "Node Edit" : isStructureEdit ? "Structure Edit" : "Explore";
+  const normalizedIndexSearch = deferredIndexSearch.trim().toLowerCase();
+  const indexSearchPending = indexSearch.trim() !== deferredIndexSearch.trim();
+  const indexMatchCount = useMemo(() => {
+    if (!normalizedIndexSearch) return simNodes.length;
+    return simNodes.filter((node) => node.label.toLowerCase().includes(normalizedIndexSearch) || node.project.toLowerCase().includes(normalizedIndexSearch)).length;
+  }, [normalizedIndexSearch, simNodes]);
+  const firstIndexMatch = useMemo(() => {
+    if (!normalizedIndexSearch) return null;
+    return (
+      simNodes.find((node) => node.label.toLowerCase().includes(normalizedIndexSearch)) ??
+      simNodes.find((node) => node.project.toLowerCase().includes(normalizedIndexSearch)) ??
+      null
+    );
+  }, [normalizedIndexSearch, simNodes]);
   const uiLayerEvents = {
     onPointerEnter: () => {
       pointerOverUiRef.current = true;
@@ -3999,11 +4014,25 @@ export default function Home() {
       >
         <p className="layer-kicker">Index</p>
         <input
+          aria-label="Search nodes"
           className="index-search"
           onChange={(event) => setIndexSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              setIndexSearch("");
+              return;
+            }
+            if (event.key === "Enter" && firstIndexMatch) {
+              event.preventDefault();
+              focusNode(firstIndexMatch);
+            }
+          }}
           placeholder="Search"
           value={indexSearch}
         />
+        {indexSearchPending && <p className="layer-kicker">검색 중...</p>}
+        {normalizedIndexSearch && !indexSearchPending && indexMatchCount === 0 && <p className="layer-kicker">검색 결과 없음</p>}
         {projects.length === 0 ? (
           <button className="index-item" type="button">빈 공간</button>
         ) : (
@@ -4011,7 +4040,7 @@ export default function Home() {
             const projectNode = simNodes.find((node) => node.project === project && node.level === "project");
             if (!projectNode) return null;
 
-            const query = indexSearch.trim().toLowerCase();
+            const query = normalizedIndexSearch;
             const projectMatches = !query || projectNode.label.toLowerCase().includes(query);
             const categories = simNodes.filter((node) => node.parentId === projectNode.id && node.level === "category");
             const projectHasMatches =

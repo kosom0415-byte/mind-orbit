@@ -8,6 +8,11 @@ type Camera = {
   zoom: number;
 };
 
+const MIN_SAFE_ZOOM = 0.5;
+const MAX_SAFE_ZOOM = 2;
+const MAX_WHEEL_DELTA = 180;
+const ZOOM_STEP = 0.065;
+
 type Viewport = {
   width: number;
   height: number;
@@ -270,8 +275,11 @@ export function useGestures({
 
   const zoomSpace = (event: ReactWheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const nextZoom = clamp(targetCameraRef.current.zoom * (event.deltaY > 0 ? 0.92 : 1.08), 0.45, 2.25);
+    const safeDelta = clamp(event.deltaY, -MAX_WHEEL_DELTA, MAX_WHEEL_DELTA);
+    const direction = safeDelta > 0 ? -1 : 1;
+    const nextZoom = clampZoom(targetCameraRef.current.zoom * (1 + direction * ZOOM_STEP));
     targetCameraRef.current = { ...targetCameraRef.current, zoom: nextZoom };
+    cameraRef.current = { ...cameraRef.current, zoom: clampZoom(cameraRef.current.zoom) };
   };
 
   return {
@@ -293,4 +301,9 @@ export function useGestures({
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function clampZoom(value: number) {
+  if (!Number.isFinite(value)) return 1;
+  return clamp(value, MIN_SAFE_ZOOM, MAX_SAFE_ZOOM);
 }

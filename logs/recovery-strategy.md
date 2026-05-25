@@ -1,9 +1,9 @@
 # Recovery Strategy Engine
 
-Generated: 2026-05-25T00:36:50.512Z
+Generated: 2026-05-25T04:09:44.474Z
 
 - Confidence: 0.92
-- Rollback candidate: ca4a355 Add persistent autonomous runtime daemon
+- Rollback candidate: fc58517 Add safe terminal mode for computer use
 - Strategy: Continue monitoring and prefer narrow dev-only workflow tasks.
 - Auto retry: allowed for LOW/MEDIUM workflow tasks only
 - Human approval required: no

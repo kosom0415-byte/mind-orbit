@@ -256,5 +256,83 @@
     "startedAt": "2026-05-25T01:49:46.878Z",
     "finishedAt": "2026-05-25T01:49:46.878Z",
     "outputSummary": "dry-run completed"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-04-35-095Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:04:35.095Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-04-38-946Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:04:38.946Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-08-15-672Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:08:15.672Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-09-02-978Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:09:02.978Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-09-15-374Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:09:15.374Z"
+  },
+  {
+    "executionId": "exec-2026-05-25T04-10-16-862Z-b57a67d8",
+    "taskId": "browser-runtime-validation",
+    "kind": "browser-runtime",
+    "command": "runtime probe http://127.0.0.1:3001",
+    "commandHash": "b57a67d86ddbec4f80d2ef85049f90476a67dda890a2c475f00c8bd6e2207197",
+    "status": "failed",
+    "riskLevel": "CRITICAL",
+    "reason": "Blank screen or failed load signal detected.",
+    "retryCount": 0,
+    "rollbackCandidate": "manual approval required before rollback",
+    "startedAt": "2026-05-25T04:10:16.862Z"
   }
 ]

@@ -1,6 +1,6 @@
 # Release Risk Score
 
-Generated: 2026-05-25T00:36:50.509Z
+Generated: 2026-05-25T04:09:44.471Z
 
 - Score: 95
 - Level: CRITICAL
